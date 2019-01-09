@@ -18,6 +18,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-from .ascii import *
-from .plots import *
-# from .fits import *
+from .lines import line
+from .spectra import spectrum
+from .io import *
+from .models import *
