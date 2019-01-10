@@ -22,17 +22,17 @@ import matplotlib.pyplot as plt
 
 from robospect import spectra
 
-def plot_spectrum(spectrum, pmin=None, pmax=None, line=None, width=None):
-    if pmin is None:
-        pmin = spectrum.min
-    if pmax is None:
-        pmax = spectrum.max
+def plot_spectrum(spectrum, min=None, max=None, line=None, width=None):
+    if min is None:
+        min = spectrum.min
+    if max is None:
+        max = spectrum.max
 
     if line is not None and width is not None:
-        pmin = spectrum.L[line].x0 - width * spectrum.L[line].w
-        pmin = spectrum.L[line].x0 + width * spectrum.L[line].w
+        min = spectrum.L[line].x0 - width * spectrum.L[line].w
+        min = spectrum.L[line].x0 + width * spectrum.L[line].w
 
-    plt.xlim(pmin, pmax)
+    plt.xlim(min, max)
     plt.ylim(0.0, 1.0)
     plt.plot(spectrum.x, spectrum.y)
     plt.xlabel("wavelength")

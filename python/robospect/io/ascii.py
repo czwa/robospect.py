@@ -79,8 +79,8 @@ def read_ascii_spectrum(filename, spectrum=None):
     spectrum.x = np.array(spectrum.x)
     spectrum.y = np.array(spectrum.y)
     spectrum.e0 = np.array(spectrum.e0)
-        
+
+    spectrum.length = index
     spectrum.min = spectrum.x[0]
-    spectrum.max = spectrum.x[spectrum.length]
+    spectrum.max = spectrum.x[spectrum.length - 1]
     return spectrum
-        
