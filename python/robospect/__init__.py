@@ -18,7 +18,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-from .lines import line
-from .spectra import spectrum
+#from .lines import line
+#from .spectra import spectrum
 from .io import *
 from .models import *

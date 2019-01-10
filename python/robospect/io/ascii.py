@@ -18,6 +18,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+import numpy as np
 from robospect import spectra
 
 def read_ascii_spectrum(filename, spectrum=None):
@@ -52,7 +53,7 @@ def read_ascii_spectrum(filename, spectrum=None):
 
     """
     if spectrum is None:
-        spectrum = spectrum()
+        spectrum = spectra.spectrum()
 
     spectrum.input_filename = filename
     spectrum.length = 0
@@ -61,20 +62,25 @@ def read_ascii_spectrum(filename, spectrum=None):
     for l in f:
         if not l.startswith("#"):
             tokens = l.split()
-            if tokens.length() >= 2:
-                spectrum.x[index] = float(tokens[0])
-                spectrum.y[index] = float(tokens[1])
-            elif tokens.length() == 3:
-                spectrum.e0[index] = float(tokens[2])
-            elif tokens.length() > 3:
-                spectrum.e0[index] = float(tokens[2])
-                spectrum.xcomm[index] = " ".join([str(x) for x in tokens[3:]])
+            Ntok = len(tokens)
+            if Ntok >= 2:
+                spectrum.x.append(float(tokens[0]))
+                spectrum.y.append(float(tokens[1]))
+            elif Ntok == 3:
+                spectrum.e0.append(float(tokens[2]))
+            elif Ntok > 3:
+                spectrum.e0.append(float(tokens[2]))
+                spectrum.xcomm.append(" ".join([str(x) for x in tokens[3:]]))
             else:
                 raise IndexError("Could not find wavelength/flux pair on line %d of file %s" %
                                  (index, filename))
         index += 1
 
+    spectrum.x = np.array(spectrum.x)
+    spectrum.y = np.array(spectrum.y)
+    spectrum.e0 = np.array(spectrum.e0)
+        
     spectrum.min = spectrum.x[0]
-    spectrum.max = spectrum.x[spectrum.length()]
+    spectrum.max = spectrum.x[spectrum.length]
     return spectrum
         
