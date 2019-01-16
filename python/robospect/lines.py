@@ -21,11 +21,23 @@
 import numpy as np
 
 class line():
+    Q = []
+    dQ = []
+    pQ = []
+
+    chi = 0.0
+    Niter = -1
+
+    x0 = 0.0
+    comment = ""
+    flags = 0xffff
+    blend = 0
+
     def __init__(self, x0=None, comment=None, flags=None, blend=None):
         self.Q  = [0.0, 0.0, 0.0, 0.0]
         self.dQ = [0.0, 0.0, 0.0, 0.0]
         self.pQ = [0.0, 0.0, 0.0, 0.0]
-        
+
         self.chi = 0.0
         self.Niter = 0
 
@@ -41,7 +53,7 @@ class line():
     def df(self, x):
         y = np.zeros(x.shape())
         return y
-    
+
     def eval(self, x):
         y = self.f(x)
-            
+
