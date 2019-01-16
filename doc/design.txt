@@ -1,0 +1,31 @@
+2019-01-16 CZW:
+
+After doing the initial configuration and coding, my current thought
+is that the `robospect.py` program flow is as follows:
+
+C = Config(sys.argv)  # parse argument list
+S = C.read_spectra()  # C holds the filename, so this constructs an appropriate
+    		      # Spectra class with the right models to use, and then loads
+		      # the data.  Perhaps S can be optionally a list, to allow for
+		      # multi-order data to be read easily?
+R = S.run_fit()       # Do all fits.  S should have inherited all appropriate config
+    		      # information (into the models as appropriate), so this just
+		      # sits and runs.  I do not have a good idea of what R looks
+		      # like yet.  If there's a clear way to parallelize things, this
+		      # is where that would happen.
+C.write_results(R)    # Do the actual IO to disk of the results.  This means intermediate
+		      # results aren't written in real time, but maybe that's ok?  I
+		      # doubt anyone ever really looked at the line improvement like
+		      # that anyway.  This is where old robospect ended.
+I = L.do_science(R)   # This is the additional step of "let's add something new."  My
+L.write_science()     # first idea was to do simple classifications, but then this
+		      # MaSTAR paper came out, and my thought was to RS fit that, take
+		      # the quoted parameters, and develop a RS->MaSTAR classifier.
+		      # More stuff could be here, though.  Calls to MOOG to do synthesis?
+		      # The point is that once measurements are done, you want something
+		      # more, and doing it all in one place might be nice.
+
+Each of these can be done in a notebook to allow an interactive check
+on things, but I haven't clearly thought that through yet.  It should
+largely be calling methods from the main classes, though.
+

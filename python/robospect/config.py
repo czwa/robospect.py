@@ -22,19 +22,76 @@ from robospect import spectra
 from robospect import models
 
 
-# If I understand correctly, this should largely do what I want to construct
-# the spectra class with all appropriate methods in place.  As we parse the
-# configuration, construct a list of models to use:
-#    modelClasses = [continuumA, detectionB, noiseA, lineC]
-# and then pass it here.  I suspect I don't need to have spectra as an
-# argument if I'm always working on it, but I won't know until I test things.
-# source: http://alexgaudio.com/2011/10/07/dynamic-inheritance-python.html
+class Config():
+    def __init__(self, *args):
+        # Internal debug assistance things
+        self.command_line = " ".join(args)
+        self.version = "dev-201901"
 
-def constructSpectraClass(spectra, modelClasses):
-    for model in modelClasses:
-        if model not in spectra.__bases__:
-            spectra.__bases__ = model + spectra.__bases__
-        else:
-            print("Cannot add %s to %s" % (model, spectra))
-    return spectra
+        # Input options
+        self.spectrum_file = None
+        self.line_list = None
+        self.spectrum_order = 0
+        self.flux_calibrated = False
 
+        # Options that actually belong to a model, but I'm copying here
+        # from rs.c for now.
+        self.max_iterations = 1
+        self.tolerance = 1e-3
+
+        self.radial_velocity = 0.0
+        self.rv_range = 300.0
+        self.rv_max_error = 1e-2
+        self.rv_steps = 100
+        self.rv_sigma = 10.0
+
+        self.detection_threshold = 3.0
+
+        self.continuum_box = 40.0
+        self.noise_box = 40.0
+
+        self.line_abs_deviation = 10.0
+        self.line_rel_deviation = 2.0
+
+        self.deblend_radius = 4.0
+        self.deblend_ratio = 0.1
+        self.deblend_iterations = 3
+
+        # Output options
+        self.path_base = None
+        self.save_temp = False
+        self.plot_all = False
+        self.verbose = 0x00
+        self.log = None
+
+        # Model selection stuff
+        self.radial_velocity_model = None
+        self.detection_model = None
+        self.noise_model = None
+        self.continuum_model = None
+        self.line_model = None
+        self.deblend_model = None
+
+        # Directly parse command line here?
+        # C = Config(sys.argv) => returns populated config
+        # S = C.read_spectra() => returns correct class with data
+        # R = S.run_fit()      => returns results
+        # C.write_results(R)   => does output IO?
+
+    def construct_spectra_class(self):
+        inheritance_list = []
+        if self.detection_model is not None:
+            inheritance_list.append(self.detection_model)
+        if self.noise_model is not None:
+            inheritance_list.append(self.noise_model)
+        if self.continuum_model is not None:
+            inhertiance_list.append(self.continuum_model)
+        if self.line_model is not None:
+            inhertiance_list.append(self.line_model)
+        inhertiance_list.append(spectra.spectra)
+
+        inheritance = tuple(inheritance_list)
+        class Spectra(*inheritance):
+            pass
+
+        return Spectra
