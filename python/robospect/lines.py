@@ -20,6 +20,8 @@
 
 import numpy as np
 
+__all__ = ['line', 'sortLines']
+
 class line():
     Q = []
     dQ = []
@@ -57,3 +59,22 @@ class line():
     def eval(self, x):
         y = self.f(x)
 
+def sortLines(line):
+    """Sorting function for line lists.
+
+    Parameters
+    ----------
+    line : `robospect.lines.line`
+        Line data to compare.
+
+    Returns
+    -------
+    x0 : float
+        Line center
+
+    Notes
+    -----
+    This function allows lists of lines to be sorted directly, using
+    `list_of_lines.sort(key=sortLines)`.
+    """
+    return line.x0

@@ -20,7 +20,9 @@
 
 import matplotlib.pyplot as plt
 
-from robospect import spectra
+from robospect.spectra import spectrum
+
+__all__ = ['plot_spectrum']
 
 def plot_spectrum(spectrum, min=None, max=None, line=None, width=None):
     if min is None:

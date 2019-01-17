@@ -20,6 +20,8 @@
 
 from robospect import lines
 
+__all__ = ['spectrum']
+
 class spectrum():
     def __init__(self):
         self.x = []

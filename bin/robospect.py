@@ -18,9 +18,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-from .config import *
-from .lines import *
-from .spectra import *
-from .io import *
-from .models import *
+import robospect as RS
+
+config  = Config(sys.argv)
+spectra = config.read_spectra()
+results = spectra.run_fit()
+config.write_results(results)
 

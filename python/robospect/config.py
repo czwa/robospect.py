@@ -21,6 +21,7 @@
 from robospect import spectra
 from robospect import models
 
+__all__ = ['Config']
 
 class Config():
     def __init__(self, *args):
