@@ -39,7 +39,7 @@ class line():
         Index of the blend group this line belongs to.
     """
     x0 = 0.0
-    
+
     Q = []
     dQ = []
     pQ = []
@@ -53,7 +53,7 @@ class line():
 
     def __init__(self, x0, Nparam=None, comment=None, flags=None, blend=None):
         self.x0 = x0
-        
+
         if Nparam is not None:
             self.Nparam = Nparam
             self.Q  = np.zeros(Nparam)
@@ -74,7 +74,7 @@ class line():
         r"""Evaluate the function of this line for the input wavelength.
 
         To be implemented by subclass.
-        
+
         CZW: To be removed?
         """
         return np.zeros(x.shape())
@@ -83,7 +83,7 @@ class line():
         r"""Evaluate the derivative of this line for the input wavelength.
 
         To be implemented by subclass.
-        
+
         CZW: To be removed?
         """
         return np.zeros(x.shape())

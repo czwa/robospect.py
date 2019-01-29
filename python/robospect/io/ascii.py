@@ -56,8 +56,8 @@ def read_ascii_linelist(filename, lines=None):
 
     lines.sort(key=sortLines)
 
-    return(lines)                
-    
+    return(lines)
+
 
 def read_ascii_spectrum(filename, spectrum=None):
     """Read spectrum data stored in ascii format.

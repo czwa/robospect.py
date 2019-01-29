@@ -29,7 +29,7 @@ class Config():
     The current list of parameters are based on the C version, and are
     not guaranteed to be implemented on any dev- version of the code.
 
-    """    
+    """
     def __init__(self, *args):
         # Internal debug assistance things
         self.command_line = " ".join(args)

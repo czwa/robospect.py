@@ -49,7 +49,7 @@ class spectrum():
     """`List` of `robospect.lines.line`"""
     filename = None
     """`str` containing the file the spectrum was read from."""
-            
+
     def __init__(self, x=None, y=None, e0=None, comment=None, L=None, filename=None):
         if x is not None:
             self.x = np.array(x)
@@ -67,7 +67,7 @@ class spectrum():
 
         if len(self.x) != len(self.y):
             raise RuntimeError("Spectra does not have the same number of flux and wavelength samples.")
-            
+
         self.continuum = np.ones(len(self.x))
         self.lines = np.zero(len(self.x))
         self.alternate = np.zero(len(self.x))
@@ -81,37 +81,37 @@ class spectrum():
         self.fit_continuum()
         self.fit_error()
         self.fit_lines()
-        
+
     def fit_detection(self):
         r"""Method to scan spectra for peaks that may be unmeasured lines.
 
         To be implemented by subclasses.
         """
         pass
-    
+
     def fit_initial(self):
         r"""Method to do initial linear fits to lines in the catalog.
 
-        This method should ideally operate in O(n_lines), 
+        This method should ideally operate in O(n_lines),
 
         To be implemented by subclases.
         """
         pass
-    
+
     def fit_lines(self):
         r"""Method to do complete fits to lines in the catalog.
 
         To be implemented by subclasses.
         """
         pass
-    
+
     def fit_continuum(self):
         r"""Method to measure the continuum level of the spectrum.
-        
+
         To be implemented by subclasses.
         """
         pass
-    
+
     def fit_error(self):
         r"""Method to measure the empirical noise level of the spectrum.
 
