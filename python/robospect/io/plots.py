@@ -26,13 +26,13 @@ __all__ = ['plot_spectrum']
 
 def plot_spectrum(spectrum, min=None, max=None, line=None, width=None):
     if min is None:
-        min = spectrum.min
+        min = spectrum.x[0]
     if max is None:
-        max = spectrum.max
+        max = spectrum.x[-1]
 
     if line is not None and width is not None:
-        min = spectrum.L[line].x0 - width * spectrum.L[line].w
-        min = spectrum.L[line].x0 + width * spectrum.L[line].w
+        min = spectrum.L[line].x0 - width * spectrum.L[line].Q[1]
+        min = spectrum.L[line].x0 + width * spectrum.L[line].Q[1]
 
     plt.xlim(min, max)
     plt.ylim(0.0, 1.0)

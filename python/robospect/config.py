@@ -24,6 +24,12 @@ from robospect import models
 __all__ = ['Config']
 
 class Config():
+    r"""Configuration handler for ROBOSPECT.
+
+    The current list of parameters are based on the C version, and are
+    not guaranteed to be implemented on any dev- version of the code.
+
+    """    
     def __init__(self, *args):
         # Internal debug assistance things
         self.command_line = " ".join(args)
@@ -80,6 +86,19 @@ class Config():
         # C.write_results(R)   => does output IO?
 
     def construct_spectra_class(self):
+        r"""Construct the spectra class.
+
+        Using the information in the configuration, construct a
+        super-class of the spectra class that implements the various
+        fitting methods.
+
+        Notes
+        -----
+
+        I would like this to be able to append the correct entries to
+        the inheritance list by name, instead of relying on the
+        sub-class being set in the configuration class.
+        """
         inheritance_list = []
         if self.detection_model is not None:
             inheritance_list.append(self.detection_model)

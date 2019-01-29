@@ -17,31 +17,65 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+import numpy as np
 
 from robospect import lines
 
 __all__ = ['spectrum']
 
 class spectrum():
-    def __init__(self):
-        self.x = []
-        self.y = []
-        self.e0 = []
-        self.xcomm = []
-        
-        self.continuum = []
-        self.lines = []
-        self.alternate = []
-        self.e = []
-        
-        self.min = 99e99
-        self.max = -99e99
-        self.N = -1
+    r"""Data, model, and fitting method code.
+    """
 
-        self.L = []
-        self.O = ""
-        
+    x = None
+    """`numpy.ndarray` : Spectra wavelength data."""
+    y = None
+    """`numpy.ndarray` : Spectra intensity data."""
+    e0 = None
+    """`numpy.ndarray` : Spectra input error."""
+    comment = None
+    """`List` of `str` : String comments for the measurement line."""
+
+    continuum = None
+    """`numpy.ndarray` : Current continuum model at the corresponding wavelength index."""
+    lines = None
+    """`numpy.ndarray` : Current line model at the corresponding wavelength index."""
+    alternate = None
+    """`numpy.ndarray` : Current alternate line model at the corresponding wavelength index."""
+    e = None
+    """`numpy.ndarray` : Current noise estimate at the corresponding wavelength index."""
+
+    L = None
+    """`List` of `robospect.lines.line`"""
+    filename = None
+    """`str` containing the file the spectrum was read from."""
+            
+    def __init__(self, x=None, y=None, e0=None, comment=None, L=None, filename=None):
+        if x is not None:
+            self.x = np.array(x)
+        if y is not None:
+            self.y = np.array(y)
+        if e0 is not None:
+            self.e0 = np.array(e0)
+        if comment is not None:
+            self.comment = comment
+        if L is not None:
+            self.L = L
+        if filename is not None:
+            self.filename = filename
+
+
+        if len(self.x) != len(self.y):
+            raise RuntimeError("Spectra does not have the same number of flux and wavelength samples.")
+            
+        self.continuum = np.ones(len(self.x))
+        self.lines = np.zero(len(self.x))
+        self.alternate = np.zero(len(self.x))
+        self.e = np.zero(len(self.x))
+
     def fit(self):
+        r"""Method to perform a single fitting iteration.
+        """
         self.fit_detection()
         self.fit_initial()
         self.fit_continuum()
@@ -49,16 +83,38 @@ class spectrum():
         self.fit_lines()
         
     def fit_detection(self):
+        r"""Method to scan spectra for peaks that may be unmeasured lines.
+
+        To be implemented by subclasses.
+        """
         pass
     
     def fit_initial(self):
+        r"""Method to do initial linear fits to lines in the catalog.
+
+        This method should ideally operate in O(n_lines), 
+
+        To be implemented by subclases.
+        """
         pass
     
     def fit_lines(self):
+        r"""Method to do complete fits to lines in the catalog.
+
+        To be implemented by subclasses.
+        """
         pass
     
     def fit_continuum(self):
+        r"""Method to measure the continuum level of the spectrum.
+        
+        To be implemented by subclasses.
+        """
         pass
     
     def fit_error(self):
+        r"""Method to measure the empirical noise level of the spectrum.
+
+        To be implemented by subclasses.
+        """
         pass

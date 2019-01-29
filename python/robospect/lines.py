@@ -23,6 +23,23 @@ import numpy as np
 __all__ = ['line', 'sortLines']
 
 class line():
+    r"""An object representing a single line fit.
+
+    Parameters
+    ----------
+    x0 : `float`
+        Expected central wavelength of the line to be fit.
+    Nparam : `int`, optional
+        Number of parameters to use in the fitting process.
+    comment : `str`, optional
+        Comment describing the line.
+    flags : `int`, optional
+        Initial flag settings for the line.
+    blend : `int`, optional
+        Index of the blend group this line belongs to.
+    """
+    x0 = 0.0
+    
     Q = []
     dQ = []
     pQ = []
@@ -30,34 +47,47 @@ class line():
     chi = 0.0
     Niter = -1
 
-    x0 = 0.0
     comment = ""
     flags = 0xffff
     blend = 0
 
-    def __init__(self, x0=None, comment=None, flags=None, blend=None):
-        self.Q  = [0.0, 0.0, 0.0, 0.0]
-        self.dQ = [0.0, 0.0, 0.0, 0.0]
-        self.pQ = [0.0, 0.0, 0.0, 0.0]
+    def __init__(self, x0, Nparam=None, comment=None, flags=None, blend=None):
+        self.x0 = x0
+        
+        if Nparam is not None:
+            self.Nparam = Nparam
+            self.Q  = np.zeros(Nparam)
+            self.dQ = np.zeros(Nparam)
+            self.pQ = np.zeros(Nparam)
 
         self.chi = 0.0
         self.Niter = 0
 
-        self.x0 = x0
-        self.comment = comment
-        self.flags = flags
-        self.blend = blend
+        if comment is not None:
+            self.comment = comment
+        if flags is not None:
+            self.flags = flags
+        if blend is not None:
+            self.blend = blend
 
     def f(self, x):
-        y = np.zeros(x.shape())
-        return y
+        r"""Evaluate the function of this line for the input wavelength.
+
+        To be implemented by subclass.
+        
+        CZW: To be removed?
+        """
+        return np.zeros(x.shape())
 
     def df(self, x):
-        y = np.zeros(x.shape())
-        return y
+        r"""Evaluate the derivative of this line for the input wavelength.
 
-    def eval(self, x):
-        y = self.f(x)
+        To be implemented by subclass.
+        
+        CZW: To be removed?
+        """
+        return np.zeros(x.shape())
+
 
 def sortLines(line):
     """Sorting function for line lists.

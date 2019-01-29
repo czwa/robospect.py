@@ -48,9 +48,9 @@ def read_ascii_linelist(filename, lines=None):
             tokens = l.split()
             Ntok = len(tokens)
             if Ntok == 1:
-                new_line = line(x0=float(tokens[0]))
+                new_line = line(float(tokens[0]))
             else:
-                new_line = line(x0=float(tokens[0]),
+                new_line = line(float(tokens[0]),
                                 comment=" ".join([str(x) for x in tokens[1:]]))
             lines.append(new_line)
 
@@ -90,36 +90,40 @@ def read_ascii_spectrum(filename, spectrum=None):
     spectrum model.
 
     """
-    if spectrum is None:
-        spectrum = spectra.spectrum()
 
-    spectrum.input_filename = filename
-    spectrum.length = 0
     index = 0
-    f = open(spectrum.input_filename, "r")
+    f = open(filename, "r")
+    x = []
+    y = []
+    e0 = []
+    comment = []
     for l in f:
         if not l.startswith("#"):
             tokens = l.split()
             Ntok = len(tokens)
             if Ntok >= 2:
-                spectrum.x.append(float(tokens[0]))
-                spectrum.y.append(float(tokens[1]))
+                x.append(float(tokens[0]))
+                y.append(float(tokens[1]))
             elif Ntok == 3:
-                spectrum.e0.append(float(tokens[2]))
+                e0.append(float(tokens[2]))
             elif Ntok > 3:
-                spectrum.e0.append(float(tokens[2]))
-                spectrum.xcomm.append(" ".join([str(x) for x in tokens[3:]]))
+                e0.append(float(tokens[2]))
+                comment.append(" ".join([str(x) for x in tokens[3:]]))
             else:
                 raise IndexError("Could not find wavelength/flux pair on line %d of file %s" %
                                  (index, filename))
         index += 1
 
-    spectrum.x = np.array(spectrum.x)
-    spectrum.y = np.array(spectrum.y)
-    spectrum.e0 = np.array(spectrum.e0)
+    if spectrum is None:
+        spectrum = spectra.spectrum(x, y, e0=e0, comment=comment, filename=filename)
+    else:
+        spectrum.x = np.array(x)
+        spectrum.y = np.array(y)
+        if len(e0) > 0:
+            spectrum.e0 = np.array(e0)
+        if len(comment) > 0:
+            spectrum.comment = comment
+        spectrum.filename = filename
 
-    spectrum.length = index
-    spectrum.min = spectrum.x[0]
-    spectrum.max = spectrum.x[spectrum.length - 1]
     return spectrum
 
