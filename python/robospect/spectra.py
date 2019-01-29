@@ -64,14 +64,25 @@ class spectrum():
         if filename is not None:
             self.filename = filename
 
-
         if len(self.x) != len(self.y):
             raise RuntimeError("Spectra does not have the same number of flux and wavelength samples.")
 
         self.continuum = np.ones(len(self.x))
-        self.lines = np.zero(len(self.x))
-        self.alternate = np.zero(len(self.x))
-        self.e = np.zero(len(self.x))
+        self.lines = np.zeros(len(self.x))
+        self.alternate = np.zeros(len(self.x))
+        self.e = np.zeros(len(self.x))
+
+    def max(self):
+        if self.x is not None:
+            return self.x[-1]
+
+    def min(self):
+        if self.x is not None:
+            return self.x[0]
+
+    def length(self):
+        if self.x is not None:
+            return len(self.x)
 
     def fit(self):
         r"""Method to perform a single fitting iteration.

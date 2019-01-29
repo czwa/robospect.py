@@ -19,7 +19,7 @@
 #
 
 import numpy as np
-from robospect.spectra import spectrum
+import robospect.spectra as spectra
 from robospect.lines import line, sortLines
 
 __all__ = ['read_ascii_spectrum']
