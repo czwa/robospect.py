@@ -18,22 +18,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-import robospect.spectra as spectra
-import robospect.lines as lines
+__all__ = ['line_gauss_guess',
+           'detection_naive',
+       ]
 
-__all__ = ['line_gauss_guess']
 
-class line_gauss_guess(spectra.spectrum):
-
-    # center
-
-    # fwhm
-
-    # fwqm
-
-    # fw3m
-
-    # sigma
-
-    # flux
-    pass

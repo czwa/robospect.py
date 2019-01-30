@@ -18,22 +18,31 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+import numpy as np
 import robospect.spectra as spectra
-import robospect.lines as lines
 
-__all__ = ['line_gauss_guess']
+__all__ = ['continuum_boxcar']
 
-class line_gauss_guess(spectra.spectrum):
+class continuum_boxcar(spectra.spectrum):
+    box_size = 50.0
 
-    # center
+    def __init__(self, box_size=None, **kwargs):
+        if box_size is not None:
+            self.box_size = box_size
 
-    # fwhm
+        super().__init__(**kwargs)
 
-    # fwqm
+    def fit_continuum(self):
+        temp = self.y - self.lines
+        for idx, w in enumerate(self.x):
+            start = np.searchsorted(self.x, w - self.box_size / 2.0, side='left')
+            end = np.searchsorted(self.x, w + self.box_size / 2.0, side='right')
 
-    # fw3m
+            self.continuum[idx] = np.median(temp[start:end])
 
-    # sigma
+            noise = temp[start:end]
+            noise = abs(noise - self.continuum[idx])
+            self.error[idx] = 1.4826 * np.median(noise)
 
-    # flux
-    pass
+    def fit_error(self):
+        pass
