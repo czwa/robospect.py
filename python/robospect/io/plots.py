@@ -19,12 +19,12 @@
 #
 
 import matplotlib.pyplot as plt
-
+import numpy as np
 from robospect.spectra import spectrum
 
 __all__ = ['plot_spectrum']
 
-def plot_spectrum(spectrum, min=None, max=None, line=None, width=None):
+def plot_spectrum(spectrum, min=None, max=None, line=None, width=None, autoscale=False):
     if min is None:
         min = spectrum.x[0]
     if max is None:
@@ -35,9 +35,23 @@ def plot_spectrum(spectrum, min=None, max=None, line=None, width=None):
         min = spectrum.L[line].x0 + width * spectrum.L[line].Q[1]
 
     plt.xlim(min, max)
-    plt.ylim(0.0, 1.0)
-    plt.plot(spectrum.x, spectrum.y)
+    plt.ylim(0.0, 1.1)
+    if autoscale is True:
+        ymin, ymax = np.percentile(spectrum.y, [1.0, 99.0])
+        plt.ylim(ymin,ymax)
+
     plt.xlabel("wavelength")
     plt.ylabel("flux")
+
+    plt.plot(spectrum.x, spectrum.y, color='b')
+
+    if (spectrum.continuum is not None and
+        len(spectrum.continuum) == spectrum.length()):
+        plt.plot(spectrum.x, spectrum.continuum, color='r')
+
+    if (spectrum.lines is not None and
+        len(spectrum.lines) == spectrum.length()):
+        plt.plot(spectrum.x, spectrum.lines, color='g')
+
     plt.show()
 
