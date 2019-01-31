@@ -20,6 +20,7 @@
 
 __all__ = ['line_gauss_guess',
            'detection_naive',
+           'continuum_boxcar',
        ]
 
 
