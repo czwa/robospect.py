@@ -40,12 +40,26 @@ class detection_naive(spectra.spectrum):
         """
         signal_to_noise = abs((self.y - self.lines)/self.error)
 
-        i = 0
-        while i < len(signal_to_noise) - 1:
-            if signal_to_noise[i] > self.threshold:
-                if (signal_to_noise[i-1] < signal_to_noise[i] and
-                    signal_to_noise[i+1] < signal_to_noise[i]):
-                    self.L.append(lines.line(x0=self.x[i],
+        in_line = False
+
+        peak_idx = -1
+        peak_val = -99
+
+        for idx, SN in enumerate(signal_to_noise):
+            if in_line is False and SN > self.threshold:
+                in_line = 1
+                peak_idx = idx
+                peak_val = SN
+
+            else in_line is True:
+                if SN > peak_val:
+                    peak_val = SN
+                    peak_idx = idx
+                else:
+                    in_line = False
+                    self.L.append(lines.line(x0=self.x[peak_idx],
                                              comment="Found by model_detection_naive"))
-            i += 1
+                    peak_idx = -1
+                    peak_val = -99
+
         self.L.sort(key=lines.sortLines)
