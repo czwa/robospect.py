@@ -51,7 +51,7 @@ class detection_naive(spectra.spectrum):
                 peak_idx = idx
                 peak_val = SN
 
-            else in_line is True:
+            elif in_line is True:
                 if SN > peak_val:
                     peak_val = SN
                     peak_idx = idx
