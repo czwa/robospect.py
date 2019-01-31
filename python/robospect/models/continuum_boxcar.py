@@ -45,7 +45,7 @@ class continuum_boxcar(spectra.spectrum):
             noise = abs(noise - self.continuum[idx])
             self.error[idx] = 1.4826 * np.median(noise)
 
-            print("%d %f %f %f\n" % (idx, self.continuum[idx],
-                                     self.error[idx], np.median(noise)))
+#            print("%d %f %f %f\n" % (idx, self.continuum[idx],
+#                                     self.error[idx], np.median(noise)))
     def fit_error(self):
         pass

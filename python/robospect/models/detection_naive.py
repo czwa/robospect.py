@@ -38,14 +38,14 @@ class detection_naive(spectra.spectrum):
         Iterate over the S/N array, identify pixels that are above the
         detection threshold, and make sure they are local maxima.
         """
-        signal_to_noise = abs((self.y - self.model)/self.error)
+        signal_to_noise = abs((self.y - self.lines)/self.error)
 
         i = 0
         while i < len(signal_to_noise) - 1:
             if signal_to_noise[i] > self.threshold:
                 if (signal_to_noise[i-1] < signal_to_noise[i] and
                     signal_to_noise[i+1] < signal_to_noise[i]):
-                    self.lines.append(line(x0=self.x[i],
-                                           comment="Found by model_detection_naive"))
+                    self.L.append(lines.line(x0=self.x[i],
+                                             comment="Found by model_detection_naive"))
             i += 1
-        self.lines.sort(key=sortLines)
+        self.L.sort(key=lines.sortLines)

@@ -49,7 +49,7 @@ class spectrum(object):
     error = None
     """`numpy.ndarray` : Current noise estimate at the corresponding wavelength index."""
 
-    L = None
+    L = []
     """`List` of `robospect.lines.line`"""
     filename = None
     """`str` containing the file the spectrum was read from."""
