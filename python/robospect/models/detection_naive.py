@@ -24,6 +24,7 @@ import robospect.lines as lines
 __all__ = ['detection_naive']
 
 class detection_naive(spectra.spectrum):
+    __metaclass__ = spectra.M_spectrum
     model_type = 'detection'
     model_name = 'naive'
 

@@ -21,9 +21,13 @@ import numpy as np
 
 from robospect import lines
 
-__all__ = ['spectrum']
+__all__ = ['spectrum', 'M_spectrum']
 
-class spectrum():
+class M_spectrum(type):
+    pass
+
+class spectrum(object):
+    __metaclass__ = M_spectrum
     r"""Data, model, and fitting method code.
     """
 
@@ -42,7 +46,7 @@ class spectrum():
     """`numpy.ndarray` : Current line model at the corresponding wavelength index."""
     alternate = None
     """`numpy.ndarray` : Current alternate line model at the corresponding wavelength index."""
-    e = None
+    error = None
     """`numpy.ndarray` : Current noise estimate at the corresponding wavelength index."""
 
     L = None
@@ -70,7 +74,7 @@ class spectrum():
         self.continuum = np.ones(len(self.x))
         self.lines = np.zeros(len(self.x))
         self.alternate = np.zeros(len(self.x))
-        self.e = np.zeros(len(self.x))
+        self.error = np.zeros(len(self.x))
 
     def max(self):
         if self.x is not None:

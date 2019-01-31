@@ -24,13 +24,14 @@ import robospect.spectra as spectra
 __all__ = ['continuum_boxcar']
 
 class continuum_boxcar(spectra.spectrum):
+    __metaclass__ = spectra.M_spectrum
     box_size = 50.0
 
     def __init__(self, box_size=None, **kwargs):
         if box_size is not None:
             self.box_size = box_size
 
-        super().__init__(**kwargs)
+#        super().__init__(**kwargs)
 
     def fit_continuum(self):
         temp = self.y - self.lines
@@ -44,5 +45,7 @@ class continuum_boxcar(spectra.spectrum):
             noise = abs(noise - self.continuum[idx])
             self.error[idx] = 1.4826 * np.median(noise)
 
+            print("%d %f %f %f\n" % (idx, self.continuum[idx],
+                                     self.error[idx], np.median(noise)))
     def fit_error(self):
         pass

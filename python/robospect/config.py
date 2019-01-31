@@ -105,13 +105,26 @@ class Config():
         if self.noise_model is not None:
             inheritance_list.append(self.noise_model)
         if self.continuum_model is not None:
-            inhertiance_list.append(self.continuum_model)
+            inheritance_list.append(self.continuum_model)
         if self.line_model is not None:
-            inhertiance_list.append(self.line_model)
-        inhertiance_list.append(spectra.spectra)
+            inheritance_list.append(self.line_model)
+        inheritance_list.append(spectra.spectrum)
 
         inheritance = tuple(inheritance_list)
         class Spectra(*inheritance):
-            pass
+#            __metaclass__ = spectra.M_spectrum
+
+            def copy_data(self, spectrum):
+                self.x = spectrum.x
+                self.y = spectrum.y
+                self.e0 = spectrum.e0
+                self.comment = spectrum.comment
+
+                self.continuum = spectrum.continuum
+                self.lines = spectrum.lines
+                self.alternate = spectrum.alternate
+                self.error = spectrum.error
+                self.L = spectrum.L
+                self.filename = spectrum.filename
 
         return Spectra

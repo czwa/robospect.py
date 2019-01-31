@@ -54,14 +54,14 @@ class line_gauss_guess(spectra.spectrum):
 
             prior = F + 1
             for dx in range(center, start):
-                if subY[dx] < prior and subY[dx] > 0.25 F:
+                if subY[dx] < prior and subY[dx] > 0.25 * F:
                     prior = subY[dx]
                 else:
                     start = dx - 1
                     break
             prior = F + 1
             for dx in range(center, end):
-                if subY[dx] < prior and subY[dx] > 0.25 F:
+                if subY[dx] < prior and subY[dx] > 0.25 * F:
                     prior = subY[dx]
                 else:
                     end = dx + 1
