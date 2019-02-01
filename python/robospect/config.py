@@ -18,6 +18,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+import argparse
+
 from robospect import spectra
 from robospect import models
 
@@ -33,8 +35,9 @@ class Config:
     def __init__(self, *args):
         # Internal debug assistance things
         self.command_line = " ".join(args)
-        self.version = "dev-201901"
+        self.version = "dev-201902"
 
+        self.arg_dict = _parse(args)
         # Input options
         self.spectrum_file = None
         self.line_list = None
@@ -84,6 +87,50 @@ class Config:
         # S = C.read_spectra() => returns correct class with data
         # R = S.run_fit()      => returns results
         # C.write_results(R)   => does output IO?
+
+    def _parse(self, args):
+        """Parse command line options into appropriate categories.
+
+        Parameters
+        ----------
+        args : `List` of `str`
+            List of command line arguments to parse
+
+        Returns
+        -------
+        arguments : `dict`
+            Dictionary of dictionaries containing parameter/values
+            split into categories.
+
+        Notes
+        -----
+
+        I haven't fully decided how this should work, but I think my
+        current plan is to split arguments into category, instantiate
+        the models (arguments['category']['model'] most likely), and
+        then pass the argument dict to a parser in that model.  The
+        alternate is to have this just append into a list of strings
+        for each category, and then have each model call ArgParse to
+        split out the parameters.  The alternate has the benefit that
+        each model can be more arbitrary in the acceptable parameters.
+        """
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-R', "--radial_velocity", nargs=2, action='append')
+        parser.add_argument('-D', "--detection", nargs=2, action='append')
+        parser.add_argument('-N', "--noise", nargs=2, action='append')
+        parser.add_argument('-C', "--continuum", nargs=2, action='append')
+        parser.add_argument('-I', "--initial", nargs=2, action='append')
+        parser.add_argument('-L', "--line", nargs=2, action='append')
+        parser.add_argument('-B', "--deblend", nargs=2, action='append')
+        parser.add_argument('-F', "--fitting", nargs=2, action='append')
+
+        arguments = dict()
+        parsed = parser.parse_args(args)
+
+        for argClass in vars(parsed).keys():
+            arguments[argClass] = {t[0]: t[1] for t in vars(parsed)[argClass]}
+
+        return arguments
 
     def construct_spectra_class(self):
         r"""Construct the spectra class.
