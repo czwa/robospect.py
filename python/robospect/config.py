@@ -23,7 +23,7 @@ from robospect import models
 
 __all__ = ['Config']
 
-class Config():
+class Config:
     r"""Configuration handler for ROBOSPECT.
 
     The current list of parameters are based on the C version, and are
@@ -127,4 +127,4 @@ class Config():
                 self.L = spectrum.L
                 self.filename = spectrum.filename
 
-        return Spectra
+        return Spectra()
