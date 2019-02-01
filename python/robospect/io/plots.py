@@ -24,7 +24,11 @@ from robospect.spectra import spectrum
 
 __all__ = ['plot_spectrum']
 
-def plot_spectrum(spectrum, min=None, max=None, line=None, width=None, autoscale=False, errors=False):
+def plot_spectrum(spectrum,
+				  min=None, max=None,
+				  line=None, width=None,
+				  autoscale=False, output=None,
+				  errors=False):
     if min is None:
         min = spectrum.x[0]
     if max is None:
@@ -58,5 +62,8 @@ def plot_spectrum(spectrum, min=None, max=None, line=None, width=None, autoscale
         plt.plot(spectrum.x, spectrum.continuum + spectrum.error, color='c')
         plt.plot(spectrum.x, spectrum.continuum - spectrum.error, color='c')
 
-    plt.show()
+    if output is None:
+        plt.show()
+    else:
+        plt.savefig(output)
 
