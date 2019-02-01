@@ -21,46 +21,60 @@ import numpy as np
 
 from robospect import lines
 
-__all__ = ['spectrum']
+__all__ = ['spectrum', 'M_spectrum']
 
-class spectrum():
+class M_spectrum(type):
+    pass
+
+class spectrum(object):
     r"""Data, model, and fitting method code.
     """
 
-    x = None
+    # x = None
     """`numpy.ndarray` : Spectra wavelength data."""
-    y = None
+    # y = None
     """`numpy.ndarray` : Spectra intensity data."""
-    e0 = None
+    # e0 = None
     """`numpy.ndarray` : Spectra input error."""
-    comment = None
+    #  comment = None
     """`List` of `str` : String comments for the measurement line."""
 
-    continuum = None
+    # continuum = None
     """`numpy.ndarray` : Current continuum model at the corresponding wavelength index."""
-    lines = None
+    #lines = None
     """`numpy.ndarray` : Current line model at the corresponding wavelength index."""
-    alternate = None
+    #alternate = None
     """`numpy.ndarray` : Current alternate line model at the corresponding wavelength index."""
-    e = None
+    #error = None
     """`numpy.ndarray` : Current noise estimate at the corresponding wavelength index."""
 
-    L = None
+    #L = []
     """`List` of `robospect.lines.line`"""
-    filename = None
+    #filename = None
     """`str` containing the file the spectrum was read from."""
 
     def __init__(self, x=None, y=None, e0=None, comment=None, L=None, filename=None):
         if x is not None:
             self.x = np.array(x)
+        else:
+            self.x = []
         if y is not None:
             self.y = np.array(y)
+        else:
+            self.y = []
         if e0 is not None:
             self.e0 = np.array(e0)
+        else:
+            self.e0 = []
         if comment is not None:
             self.comment = comment
+        else:
+            self.comment = []
         if L is not None:
             self.L = L
+        else:
+            self.L = []
+
         if filename is not None:
             self.filename = filename
 
@@ -70,7 +84,7 @@ class spectrum():
         self.continuum = np.ones(len(self.x))
         self.lines = np.zeros(len(self.x))
         self.alternate = np.zeros(len(self.x))
-        self.e = np.zeros(len(self.x))
+        self.error = np.zeros(len(self.x))
 
     def max(self):
         if self.x is not None:
