@@ -47,6 +47,10 @@ def plot_spectrum(spectrum,
     plt.xlabel("wavelength")
     plt.ylabel("flux")
 
+    if spectrum.L is not None:
+        for l in spectrum.L:
+            plt.axvline(x=l.x0, color='#FFA500', linewidth=0.1)
+
     plt.plot(spectrum.x, spectrum.y, color='b')
 
     if (spectrum.continuum is not None and
