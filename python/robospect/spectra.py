@@ -30,63 +30,20 @@ class spectrum(object):
     r"""Data, model, and fitting method code.
     """
 
-    # x = None
-    """`numpy.ndarray` : Spectra wavelength data."""
-    # y = None
-    """`numpy.ndarray` : Spectra intensity data."""
-    # e0 = None
-    """`numpy.ndarray` : Spectra input error."""
-    #  comment = None
-    """`List` of `str` : String comments for the measurement line."""
-
-    # continuum = None
-    """`numpy.ndarray` : Current continuum model at the corresponding wavelength index."""
-    #lines = None
-    """`numpy.ndarray` : Current line model at the corresponding wavelength index."""
-    #alternate = None
-    """`numpy.ndarray` : Current alternate line model at the corresponding wavelength index."""
-    #error = None
-    """`numpy.ndarray` : Current noise estimate at the corresponding wavelength index."""
-
-    #L = []
-    """`List` of `robospect.lines.line`"""
-    #filename = None
-    """`str` containing the file the spectrum was read from."""
-
-    def __init__(self, x=None, y=None, e0=None, comment=None, L=None, filename=None):
+    def __init__(self, *args, **kwargs):
         print("spectrum init")
-        if x is not None:
-            self.x = np.array(x)
-        else:
-            self.x = []
-        if y is not None:
-            self.y = np.array(y)
-        else:
-            self.y = []
-        if e0 is not None:
-            self.e0 = np.array(e0)
-        else:
-            self.e0 = []
-        if comment is not None:
-            self.comment = comment
-        else:
-            self.comment = []
-        if L is not None:
-            self.L = L
-        else:
-            self.L = []
 
-        if filename is not None:
-            self.filename = filename
+        self.x = []
+        self.y = []
+        self.e0 = []
+        self.comment = []
+        self.L = []
+        self.filename = ""
 
-        # if self.x is not None and self.y is not None:
-        #     if len(self.x) != len(self.y):
-        #         raise RuntimeError("Spectra does not have the same flux and wavelength length.")
-
-        #     self.continuum = np.ones(len(self.x))
-        #     self.lines = np.zeros(len(self.x))
-        #     self.alternate = np.zeros(len(self.x))
-        #     self.error = np.zeros(len(self.x))
+        self.continuum = np.ones(len(self.x))
+        self.lines = np.zeros(len(self.x))
+        self.alternate = np.zeros(len(self.x))
+        self.error = np.zeros(len(self.x))
 
     def max(self):
         if self.x is not None:
@@ -96,21 +53,57 @@ class spectrum(object):
         if self.x is not None:
             return self.x[0]
 
-#    def length(self):
-#        if self.x is not None:
-#            return len(self.x)
+    def length(self):
+        if self.x is not None:
+            return len(self.x)
 
-    def fit(self):
+    def fit(self, config=None):
         r"""Method to perform a single fitting iteration.
         """
-        self.fit_detection()
-        self.fit_initial()
-        self.fit_continuum()
-        self.fit_error()
-        self.fit_lines()
+        if config is None:
+            iteration = 0
+            max_iteration = 1
+        else:
+            iteration = config.iteration
+            max_iteration = config.max_iteration
+
+        while iteration < max_iteration:
+            self.fit_detection()
+            self.fit_continuum()
+            self.fit_error()
+            self.fit_initial()
+            self.fit_lines()
+            self.fit_deblend()
+            self.fit_repair()
+
+            iteration += 1
+
+        # Write outputs
+        print("Outputs may be written now.")
+
+    def fit_repair(self):
+        r"""Method to correct spectra for wavelength solution errors and other issues.
+
+        To be implemented by subclasses.
+        """
+        pass
 
     def fit_detection(self):
         r"""Method to scan spectra for peaks that may be unmeasured lines.
+
+        To be implemented by subclasses.
+        """
+        pass
+
+    def fit_error(self):
+        r"""Method to measure the empirical noise level of the spectrum.
+
+        To be implemented by subclasses.
+        """
+        pass
+
+    def fit_continuum(self):
+        r"""Method to measure the continuum level of the spectrum.
 
         To be implemented by subclasses.
         """
@@ -132,16 +125,10 @@ class spectrum(object):
         """
         pass
 
-    def fit_continuum(self):
-        r"""Method to measure the continuum level of the spectrum.
+    def fit_deblend(self):
+        r"""Method to deblend lines from each other.
 
         To be implemented by subclasses.
         """
         pass
 
-    def fit_error(self):
-        r"""Method to measure the empirical noise level of the spectrum.
-
-        To be implemented by subclasses.
-        """
-        pass

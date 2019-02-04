@@ -18,19 +18,23 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+import numpy as np
 import robospect.spectra as spectra
 import robospect.lines as lines
 
 __all__ = ['detection_naive']
 
 class detection_naive(spectra.spectrum):
-    modelClass = 'detection'
     modelName = 'naive'
-
-    threshold = 3.0
+    modelPhase = 'detection'
 
     def __init__(self, *args, **kwargs):
         print("detection init")
+        print(args)
+        print(kwargs)
+        if "detection" in kwargs.keys():
+            self.threshold = kwargs["detection"].setdefault("threshold", 3.0)
+
         super().__init__(*args, **kwargs)
 
     def fit_detection(self):
@@ -41,7 +45,8 @@ class detection_naive(spectra.spectrum):
         Iterate over the S/N array, identify pixels that are above the
         detection threshold, and make sure they are local maxima.
         """
-        signal_to_noise = abs((self.y - self.continuum - self.lines)/self.error)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            signal_to_noise = abs((self.y - self.continuum - self.lines)/self.error)
 
         in_line = False
 

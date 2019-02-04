@@ -34,8 +34,8 @@ class Config:
     not guaranteed to be implemented on any dev- version of the code.
 
     """
-    model_classes = ['repair', 'detection', 'noise', 'continuum',
-                     'initial', 'line', 'deblend']
+    model_phases = ['repair', 'detection', 'noise', 'continuum',
+                    'initial', 'line', 'deblend']
     rs_models = dict()
 
     def __init__(self, *args):
@@ -45,30 +45,32 @@ class Config:
 
         # Pack models into dict for access later
         for rsModel in dir(models):
-            for modelClass in self.model_classes:
-                if rsModel.startswith(modelClass):
+            for modelPhase in self.model_phases:
+                if rsModel.startswith(modelPhase):
                     model = getattr(models, rsModel)
                     model = getattr(model, rsModel)
                     modelName = model.modelName
-                    self.rs_models.setdefault(modelClass, dict()).setdefault(modelName, model)
+                    self.rs_models.setdefault(modelPhase, dict()).setdefault(modelName, model)
 
         self.arg_dict = self._parse(args)
         print(self.arg_dict)
         print(self.rs_models)
 
         # Model selection setting
-        for modelClass in self.model_classes:
-            modelName = self.arg_dict[modelClass].setdefault("name", None)
+        for modelPhase in self.model_phases:
+            modelName = self.arg_dict[modelPhase].setdefault("name", None)
             if modelName is None:
-                setattr(self, f"{modelClass}_model", None)
+                setattr(self, f"{modelPhase}_model", None)
             else:
-                setattr(self, f"{modelClass}_model", self.rs_models[modelClass][modelName])
+                setattr(self, f"{modelPhase}_model", self.rs_models[modelPhase][modelName])
 
         print(dir(self))
 
         # Set defaults
         if self.continuum_model is None:
             self.continuum_model = self.rs_models["continuum"]["boxcar"]
+        if self.detection_model is None:
+            self.detection_model = self.rs_models["detection"]["naive"]
         if self.initial_model is None:
             self.initial_model = self.rs_models["line"]["pre"]
 
@@ -82,6 +84,7 @@ class Config:
         self.plot_all = fittingArgs.setdefault("plot_all", False)
         self.log = fittingArgs.setdefault("log", "/tmp/rs.log")
 
+        self.iteration = 0
         # Directly parse command line here?
         # C = Config(sys.argv) => returns populated config
         # S = C.read_spectra() => returns correct class with data
@@ -136,11 +139,10 @@ class Config:
         return arguments
 
     def read_spectrum(self):
-        S = self.construct_spectra_class(self.arg_dict)
+        S = self.construct_spectra_class(None, **self.arg_dict)
         S = io.read_ascii_spectrum(self.spectrum_file, spectrum=S)
-        import pdb
-        pdb.set_trace()
-        S.L = io.read_ascii_linelist(self.line_list, lines=None)
+        if self.line_list is not None:
+            S.L = io.read_ascii_linelist(self.line_list, lines=None)
 
         return S
 
@@ -170,6 +172,7 @@ class Config:
         inheritance_list.append(spectra.spectrum)
 
         inheritance = tuple(inheritance_list)
+        print(inheritance_list)
         class Spectra(*inheritance):
             def __init__(self, *args, **kwargs):
                 print("Spectra init")

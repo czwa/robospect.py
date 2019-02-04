@@ -29,12 +29,10 @@ class line_gauss_guess(spectra.spectrum):
     modelParamN = 3
 
     def __init__(self, *args, **kwargs):
+        if "initial" in kwargs.keys():
+            self.range = kwargs["initial"].setdefault("range", 25.0)
+
         super().__init__(*args, **kwargs)
-
-    def parseArgs(self, **kwargs):
-        self.range = 25.0
-
-        super().parseArgs(*kwargs)
 
     def _centroid(self, X, Y):
         V = 0.0
@@ -48,6 +46,7 @@ class line_gauss_guess(spectra.spectrum):
 
     def _eval_interpolant_fraction(self, central_index, value):
         pass
+
     def fit_initial(self):
         for line in L:
             start = np.searchsorted(self.x, line.x0 - range, side='left')
