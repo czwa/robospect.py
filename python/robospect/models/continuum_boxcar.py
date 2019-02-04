@@ -24,14 +24,12 @@ import robospect.spectra as spectra
 __all__ = ['continuum_boxcar']
 
 class continuum_boxcar(spectra.spectrum):
-    __metaclass__ = spectra.M_spectrum
-    box_size = 50.0
+    modelClass = 'continuum'
+    modelName = 'boxcar'
 
-    def __init__(self, box_size=None, **kwargs):
-        if box_size is not None:
-            self.box_size = box_size
-
-#        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        print("boxcar init")
+        super().__init__(*args, *kwargs)
 
     def fit_continuum(self):
         temp = self.y - self.lines

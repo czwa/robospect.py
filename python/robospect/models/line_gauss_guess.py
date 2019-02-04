@@ -24,7 +24,17 @@ import robospect.lines as lines
 __all__ = ['line_gauss_guess']
 
 class line_gauss_guess(spectra.spectrum):
-    range = 25.0
+    modelName = 'pre'
+    modelPhase = 'initial'
+    modelParamN = 3
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def parseArgs(self, **kwargs):
+        self.range = 25.0
+
+        super().parseArgs(*kwargs)
 
     def _centroid(self, X, Y):
         V = 0.0

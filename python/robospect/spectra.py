@@ -54,6 +54,7 @@ class spectrum(object):
     """`str` containing the file the spectrum was read from."""
 
     def __init__(self, x=None, y=None, e0=None, comment=None, L=None, filename=None):
+        print("spectrum init")
         if x is not None:
             self.x = np.array(x)
         else:
@@ -78,13 +79,14 @@ class spectrum(object):
         if filename is not None:
             self.filename = filename
 
-        if len(self.x) != len(self.y):
-            raise RuntimeError("Spectra does not have the same number of flux and wavelength samples.")
+        # if self.x is not None and self.y is not None:
+        #     if len(self.x) != len(self.y):
+        #         raise RuntimeError("Spectra does not have the same flux and wavelength length.")
 
-        self.continuum = np.ones(len(self.x))
-        self.lines = np.zeros(len(self.x))
-        self.alternate = np.zeros(len(self.x))
-        self.error = np.zeros(len(self.x))
+        #     self.continuum = np.ones(len(self.x))
+        #     self.lines = np.zeros(len(self.x))
+        #     self.alternate = np.zeros(len(self.x))
+        #     self.error = np.zeros(len(self.x))
 
     def max(self):
         if self.x is not None:
@@ -94,9 +96,9 @@ class spectrum(object):
         if self.x is not None:
             return self.x[0]
 
-    def length(self):
-        if self.x is not None:
-            return len(self.x)
+#    def length(self):
+#        if self.x is not None:
+#            return len(self.x)
 
     def fit(self):
         r"""Method to perform a single fitting iteration.

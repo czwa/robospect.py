@@ -24,11 +24,14 @@ import robospect.lines as lines
 __all__ = ['detection_naive']
 
 class detection_naive(spectra.spectrum):
-    __metaclass__ = spectra.M_spectrum
-    model_type = 'detection'
-    model_name = 'naive'
+    modelClass = 'detection'
+    modelName = 'naive'
 
     threshold = 3.0
+
+    def __init__(self, *args, **kwargs):
+        print("detection init")
+        super().__init__(*args, **kwargs)
 
     def fit_detection(self):
         """Use signal-to-noise threshold to identify potential lines.

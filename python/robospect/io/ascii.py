@@ -22,7 +22,7 @@ import numpy as np
 import robospect.spectra as spectra
 from robospect.lines import line, sortLines
 
-__all__ = ['read_ascii_spectrum']
+__all__ = ['read_ascii_spectrum', 'read_ascii_linelist']
 
 def read_ascii_linelist(filename, lines=None):
     """Read list of lines to fit stored in ascii format.
