@@ -38,9 +38,9 @@ class Config:
                     'initial', 'line', 'deblend']
     rs_models = dict()
 
-    def __init__(self, *args):
+    def __init__(self, *args, **kwargs):
         # Internal debug assistance things
-        self.command_line = " ".join(*args)
+        self.command_line = " ".join(args)
         self.version = "dev-201902"
 
         # Pack models into dict for access later
@@ -52,7 +52,7 @@ class Config:
                     modelName = model.modelName
                     self.rs_models.setdefault(modelPhase, dict()).setdefault(modelName, model)
 
-        self.arg_dict = self._parse(args)
+        self.arg_dict = self._parse(*args)
         print(self.arg_dict)
         print(self.rs_models)
 
@@ -126,8 +126,7 @@ class Config:
         parser.add_argument('-L', "--line", nargs=2, action='append')
         parser.add_argument('-B', "--deblend", nargs=2, action='append')
         parser.add_argument('-F', "--fitting", nargs=2, action='append')
-
-        parsed = parser.parse_args()
+        parsed, unparsed = parser.parse_known_args(*args)
 
         arguments = dict()
         for argClass in vars(parsed).keys():
@@ -138,8 +137,10 @@ class Config:
 
         return arguments
 
-    def read_spectrum(self):
+    def read_spectrum(self, spectrum_file=None):
         S = self.construct_spectra_class(None, **self.arg_dict)
+        if spectrum_file is not None:
+            self.spectrum_file = spectrum_file
         S = io.read_ascii_spectrum(self.spectrum_file, spectrum=S)
         if self.line_list is not None:
             S.L = io.read_ascii_linelist(self.line_list, lines=None)
