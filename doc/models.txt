@@ -1,0 +1,44 @@
+Robospect 2013 model list:
+
+Continuum:
+        boxcar
+        logboxcar
+        peak
+        blackbody
+        powerlaw
+        histogram/gaussian
+        null
+        bspline?
+        fft?
+Noise:
+        boxcar
+        null
+        slow boxcar?
+        poisson
+Line:
+        null
+        gaussian
+        fixed-mean gaussian
+        pre
+        nonparametric
+        two-stage
+        two-stage fixed
+        two-stage + deblending
+Line shape:
+        gaussian
+        lorentzian
+        hjerting
+        humlicek
+        nonparametric
+        skew gauss
+Deblend:
+        null
+        nlls
+Detection:
+        naive
+Repair:
+        radial velocity
+        linear wavelength offset
+        broken linear wavelength offset
+        
+
