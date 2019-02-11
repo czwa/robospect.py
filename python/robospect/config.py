@@ -168,6 +168,8 @@ class Config:
             inheritance_list.append(self.noise_model)
         if self.continuum_model is not None:
             inheritance_list.append(self.continuum_model)
+        if self.initial_model is not None:
+            inheritance_list.append(self.initial_model)
         if self.line_model is not None:
             inheritance_list.append(self.line_model)
         inheritance_list.append(spectra.spectrum)

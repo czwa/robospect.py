@@ -25,10 +25,10 @@ from robospect.spectra import spectrum
 __all__ = ['plot_spectrum']
 
 def plot_spectrum(spectrum,
-				  min=None, max=None,
-				  line=None, width=None,
-				  autoscale=False, output=None,
-				  errors=False):
+                  min=None, max=None,
+                  line=None, width=None,
+                  autoscale=False, output=None,
+                  errors=False):
     if min is None:
         min = spectrum.x[0]
     if max is None:

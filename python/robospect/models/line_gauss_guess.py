@@ -18,8 +18,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+import numpy as np
 import robospect.spectra as spectra
 import robospect.lines as lines
+import robospect.models.profile_shapes as profiles
 
 __all__ = ['line_gauss_guess']
 
@@ -29,8 +31,10 @@ class line_gauss_guess(spectra.spectrum):
     modelParamN = 3
 
     def __init__(self, *args, **kwargs):
-        if "initial" in kwargs.keys():
-            self.range = kwargs["initial"].setdefault("range", 25.0)
+        print("init initial pre: %s", kwargs)
+        if "initial" not in kwargs.keys():
+            kwargs["initial"] = dict()
+        self.range = kwargs["initial"].setdefault("range", 25.0)
 
         super().__init__(*args, **kwargs)
 
@@ -48,45 +52,72 @@ class line_gauss_guess(spectra.spectrum):
         pass
 
     def fit_initial(self):
-        for line in L:
-            start = np.searchsorted(self.x, line.x0 - range, side='left')
+        self.lines = np.copy(self.continuum)
+        P = profiles.gaussian()
+        for line in self.L:
+            #            print("%s: %f\n" % (line.comment, line.x0))
+            start = np.searchsorted(self.x, line.x0 - self.range, side='left')
             center= np.searchsorted(self.x, line.x0, side='right')
-            end   = np.searchsorted(self.x, line.x0 + range, side='right')
+            end   = np.searchsorted(self.x, line.x0 + self.range, side='right')
 
+            # mean
             m = self._centroid(self.x[center-2:center+2],
                                self.y[center-2:center+2] -
                                self.continuum[center-2:center+2])
             F = abs(self.y[center] - self.continuum[center])
 
-            subX = self.x[start:end]
-            subY = abs(self.y[start:end] - self.continuum[start:end])
+            # subX = self.x[start:end]
+            # subY = abs(self.y[start:end] - self.continuum[start:end])
 
-            prior = F + 1
-            for dx in range(center, start):
-                if subY[dx] < prior and subY[dx] > 0.25 * F:
-                    prior = subY[dx]
-                else:
-                    start = dx - 1
-                    break
-            prior = F + 1
-            for dx in range(center, end):
-                if subY[dx] < prior and subY[dx] > 0.25 * F:
-                    prior = subY[dx]
-                else:
-                    end = dx + 1
-                    break
+            # prior = F + 1
+            # for dx in range(center - start, 0):
+            #     if subY[dx] < prior and subY[dx] > 0.25 * F:
+            #         prior = subY[dx]
+            #     else:
+            #         start = dx - 1
+            #         break
+            # prior = F + 1
+            # print("%f %f %f %f" % (1.0, center, end, 1.0))
+            # for dx in range(center - start, end - start):
+            #     print("%f %f %f %f" % (prior, center, end, subY[dx]))
+            #     if subY[dx] < prior and subY[dx] > 0.25 * F:
+            #         prior = subY[dx]
+            #     else:
+            #         end = dx + 1
+            #         break
 
             subX = self.x[start:center]
             subY = abs(self.y[start:center] - self.continuum[start:center])
-            hwhm1, hwqm1, hw3qm1 = np.interp([0.25 * F, 0.5 * F, 0.75 * F],
-                                             subY, subX)
+            hwhm1, hwqm1, hw3qm1 = abs(np.interp([0.25 * F, 0.5 * F, 0.75 * F],
+                                                 subY, subX) - m)
 
             subX = self.x[center:end]
             subY = abs(self.y[center:end] - self.continuum[center:end])
-            hwhm2, hwqm2, hw3qm2 = np.interp([0.25 * F, 0.5 * F, 0.75 * F],
-                                             subY, subX)
+            hwhm2, hwqm2, hw3qm2 = abs(np.interp([0.25 * F, 0.5 * F, 0.75 * F],
+                                                 subY, subX) - m)
 
-        # sigma
+            # sigma
+            sigmas = ((np.array([hwhm1, hwqm1, hw3qm1]) + np.array([hwhm2, hwqm1, hw3qm1])) /
+                      np.array([2.0 * np.sqrt(2.0 * np.log(2.0)), np.sqrt(2.0), 2.0 * np.sqrt(2.0 * (2.0 * np.log(2.0) - np.log(3.0)))]))
+            sigma = np.median(sigmas)
 
-        # flux
-        pass
+            # flux
+            F = F  # * sigma * np.sqrt(2 * np.pi)
+
+            # eta
+            line.Q = np.array([m, sigma, F])
+            #            if self.nparm >= 4:
+            peakiness = (hwhm2 + hwhm1) / (hw3qm2 + hw3qm1)
+            if peakiness > 1.68:
+                eta = -132.4711 + 79.3913 * peakiness
+            else:
+                eta = -18.7118 + 11.9942 * peakiness
+            if eta < 0.0:
+                eta = 0.0
+            np.append(line.Q, eta)
+
+            line.Qp = line.Q
+            #            print("%s" % line.Q)
+
+            for dx in range(start, end):
+                self.lines[dx] = self.lines[dx] - P.eval(self.x[dx], line.Q)
