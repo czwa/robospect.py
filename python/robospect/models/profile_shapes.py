@@ -81,12 +81,50 @@ class voigt(profile):
         zI = eta / s
         z = sqrt(0.5) * (zR + zI*1j)
 
-        f = (sp.wofz(z).real)/(s * sqrt(2.0 * sp.pi))
+        f = A * (sp.wofz(z).real)/(s * sqrt(2.0 * sp.pi))
         return f
 
     def df(self, x, Q):
+		r"""
+		Notes
+		-----
+		zR = (x - m) / s
+		zI = eta / s
+		z = sqrt(0.5) * (zR + zI*I)
+		
+		dz/dm = -sqrt(0.5) / s
+		dz/ds = -sqrt(0.5) / s^2 ( (x-m) + eta I)
+		dz/deta = sqrt(0.5) I / s
+
+		f = W(z) / ks
+		df/dm = 1/ks * dW/dz * dzdm
+		df/ds = 1/k * (dW/dz * dzds * s - W(z)) / s^2
+		dfdeta = 1/ks * dW/dz * dzdeta
+
+		W = exp(-z^2) * erfc(-i*z)
+		dW/dz = d(exp)/dz * erfc(-i*z) + exp(-z^2) * d(erfc)/dz
+		dexpdz = -2 * z * exp(-z^2)
+		derfdz = 2i / pi * exp(-z^2)
+
+		dW/dz = -2 * z * W(z) + 2 * i / pi * exp(-z^2) * exp(-z^2)
+		"""
         (m, s, A, eta) = Q
-        return (0, 0, 0)
+        zR = (x - m) / s
+        zI = eta / s
+        z = sqrt(0.5) * (zR + zI*1j)
+
+		dfdA = (sp.wofz(z).real)/(s * sqrt(2.0 * sp.pi))
+		dWdz = -2 * (z * sp.wofz(z) +
+					 1j / sp.pi * exp(-2 * z**2))
+		dzdm = -sqrt(0.5) / s
+		dzds = -z / s
+		dzdeta = sqrt(0.5) * 1j / s
+
+		dfdm = A/(s * sqrt(2.0) * sp.pi) * dWdz.real * dzdm
+		dfds = -A/(s * sqrt(2.0) * sp.pi) * (dWdz.real * z + sp.wofz(z).real) / s
+		dfdeta = A/(s * sqrt(2.0) * sp.pi) * dWdz.imag / s * -sqrt(0.5)
+		
+        return (dfdm, dfds, dfdA, dfdeta)
 
     def fdf(self, x, Q):
         (m, s, A, eta) = Q
@@ -94,7 +132,7 @@ class voigt(profile):
         zI = eta / s
         z = sqrt(0.5) * (zR + zI*1j)
 
-        f = (sp.wofz(z).real)/(s * sqrt(2.0 * sp.pi))
+        f = A * (sp.wofz(z).real)/(s * sqrt(2.0 * sp.pi))
         return (f, 0, 0, 0)
 
 class skewgauss(profile):
@@ -103,6 +141,15 @@ class skewgauss(profile):
         delta = eta / sqrt(1 + eta*eta)
         gamma = (2.0 - sp.pi/2.0) * (delta * sqrt(2/sp.pi))**3 / (1 - (2 / sp.pi) * delta*delta)**1.5
         return gamma
+
+	def f(self, x, Q):
+        (m, s, A, eta) = Q
+        z = (x - m)/s
+        G = exp(-0.5 * z*z)
+
+        f = A * G * (1.0 * sp.erf(eta * z * sqrt(0.5)))
+
+		return f
 
     def fdf(self, x, Q):
         (m, s, A, eta) = Q
@@ -121,7 +168,7 @@ class skewgauss(profile):
         (f, dfdm, dfds, dfdA, dfdeta) = self.fdf(x,Q)
         return(f)
 
-class lorentzial(profile):
+class lorentzian(profile):
     def fdf(self, x, Q):
         (m, s, A) = Q
         z = 1 / ((x-m)**2 + 0.25 * s**2)
@@ -136,3 +183,12 @@ class lorentzial(profile):
         (f, dfdm, dfds, dfdA, dfdeta) = self.fdf(x,Q)
         return(f / (s * sqrt(2 * sp.pi)))
 
+class planck(profile):
+	def fdf(self, x, Q):
+		(T) = Q
+		E = exp(1 / (T * x))
+		dfdA = x**-5 / (E - 1) 
+		f = A * dfdA
+		dfdT = f / x * E / (E - 1) * T**-2
+		return(f, dfdT, dfdA)
+	
