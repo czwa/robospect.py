@@ -18,7 +18,34 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-from robospect.config import config
+import numpy as np
+from robospect.config import *
 from robospect.lines import line
 from robospect.spectra import spectrum
+
+__all__ = ['write_ascii_catalog'] # , 'write_fits_catalog', 'write_sqlite_catalog']
+
+def _eqw(F):
+    return -1000.0 * F
+
+def write_ascii_catalog(filename, lines):
+    """Write list of lines to ascii format
+    """
+    if filename is None:
+        raise RuntimeError("No output catalog file specified")
+    if lines is None:
+        raise RuntimeError("No lines specified to write")
+    np.set_printoptions(precision=4, suppress=True)
+    with open(filename, "w") as f:
+        f.write ("## Robospect line catalog\n")
+        f.write ("## Flags:\n")
+        f.write ("## Units\n")
+        f.write ("## Headers\n")
+
+        for l in lines:
+            f.write ("%.4f %s   %s   %s       %f   %f   %f 0x%x   %d  %s\n" %
+                     (l.x0, l.Q, l.dQ, l.pQ,
+                      0.0, 0.0,
+                      #                      _eqw(l.Q[2]), _eqw(l.dQ[2]),
+                      l.chi, l.flags, l.blend, l.comment))
 

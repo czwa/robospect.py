@@ -70,7 +70,7 @@ class gaussian(profile):
 
     def eval(self, x, Q):
         (m, s, A) = Q
-        return self.f(x, Q) / (s * np.sqrt(2.0 * sp.pi))
+        return self.f(x, Q)
 
 # https://en.wikipedia.org/wiki/Voigt_profile
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.wofz.html#scipy.special.wofz

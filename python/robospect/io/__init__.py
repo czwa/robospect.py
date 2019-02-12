@@ -20,4 +20,5 @@
 
 from .ascii import *
 from .plots import *
+from .catalog import *
 # from .fits import *

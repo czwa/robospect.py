@@ -66,7 +66,7 @@ class line_gauss_guess(spectra.spectrum):
         P = profiles.gaussian()
         temp = abs(self.y - self.continuum)
         for line in self.L:
-            print("%s: %f" % (line.comment, line.x0))
+            #           print("%s: %f" % (line.comment, line.x0))
             start = np.searchsorted(self.x, line.x0 - self.range, side='left')
             center= np.searchsorted(self.x, line.x0, side='left')
             end   = np.searchsorted(self.x, line.x0 + self.range, side='right')
@@ -74,18 +74,14 @@ class line_gauss_guess(spectra.spectrum):
             # mean
             m = self._centroid(self.x[center-2:center+2],
                                temp[center-2:center+2])
-            print("%f %f %f %d" % (line.x0, m, 1.0, center))
+            #            print("%f %f %f %d" % (line.x0, m, 1.0, center))
             center= np.searchsorted(self.x, m, side='left')
             F = temp[center - 1]
-            print("%f %f %f %d" % (line.x0, m, F, center))
+
+            #            print("%f %f %f %d" % (line.x0, m, F, center))
 
             hwhm1, hwqm1, hw3qm1 = (0.0, 0.0, 0.0)
             for idx in range(center - 1, start, -1):
-                print("%d %f %f %d %d %d" %
-                      (idx, self.x[idx], temp[idx] / F,
-                       temp[idx] / F < 0.75,
-                       temp[idx] / F < 0.5,
-                       temp[idx] / F < 0.25))
                 if hw3qm1 == 0.0 and temp[idx] / F < 0.75:
                     hw3qm1 = self._interpY(self.x, temp, idx, 0.75 * F)
                 if hwhm1 == 0.0 and temp[idx] / F < 0.5:
@@ -93,15 +89,9 @@ class line_gauss_guess(spectra.spectrum):
                 if hwqm1 == 0.0 and temp[idx] / F < 0.25:
                     hwqm1 = self._interpY(self.x, temp, idx, 0.5 * F)
                     break
-            print("-> %f %f %f" % (hw3qm1, hwhm1, hwqm1))
 
             hwhm2, hwqm2, hw3qm2 = (0.0, 0.0, 0.0)
             for idx in range(center - 1, end, 1):
-                print("%d %f %f %d %d %d" %
-                      (idx, self.x[idx], temp[idx] / F,
-                       temp[idx] / F < 0.75,
-                       temp[idx] / F < 0.5,
-                       temp[idx] / F < 0.25))
                 if hw3qm2 == 0.0 and temp[idx] / F < 0.75:
                     hw3qm2 = self._interpY(self.x, temp, idx, 0.75 * F, side='right')
                 if hwhm2 == 0.0 and temp[idx] / F < 0.5:
@@ -109,9 +99,6 @@ class line_gauss_guess(spectra.spectrum):
                 if hwqm2 == 0.0 and temp[idx] / F < 0.25:
                     hwqm2 = self._interpY(self.x, temp, idx, 0.5 * F, side='right')
                     break
-            print("-> %f %f %f" % (hw3qm2, hwhm2, hwqm2))
-
-            #            exit()
 
             # sigma
             sigmas = ((np.array([hwhm1, hwqm1, hw3qm1]) +
@@ -122,9 +109,10 @@ class line_gauss_guess(spectra.spectrum):
             sigma = np.median(sigmas)
             if sigma == 0.0:
                 sigma = self.x[center] - self.x[center - 1]
-            # flux
-            F = F  * sigma * np.sqrt(2 * np.pi)
 
+            # flux
+            # Attempt to correct flux for peak-vs-sample peak offset.
+            F = F * np.exp(0.5 * ((m - self.x[center])/sigma)**2)
             # eta
             line.Q = np.array([m, sigma, F])
             #            if self.nparm >= 4:
@@ -139,7 +127,7 @@ class line_gauss_guess(spectra.spectrum):
                 eta = 0.0
             np.append(line.Q, eta)
 
-            line.Qp = line.Q
+            line.pQ = line.Q
             print("    %s" % line.Q)
 
             for dx in range(start, end):
