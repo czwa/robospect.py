@@ -27,12 +27,11 @@ class continuum_boxcar(spectra.spectrum):
     modelName = 'boxcar'
     modelPhase = 'continuum'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         print("boxcar init")
-        if "continuum" in kwargs.keys():
-            self.box_size = kwargs["continuum"].setdefault("box_size", 25.0)
-
-        super().__init__(*args, *kwargs)
+        super().__init__(**kwargs)
+        self.config = kwargs.setdefault('continuum', dict())
+        self.box_size = self.config.setdefault('box_size', 40.0)
 
     def fit_continuum(self):
         temp = self.y - self.lines

@@ -28,14 +28,14 @@ class detection_naive(spectra.spectrum):
     modelName = 'naive'
     modelPhase = 'detection'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         print("detection init")
         print(args)
         print(kwargs)
-        if "detection" in kwargs.keys():
-            self.threshold = kwargs["detection"].setdefault("threshold", 3.0)
 
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
+        self.config = kwargs.setdefault('detection', dict())
+        self.threshold = self.config.setdefault('threshold', 3.0)
 
     def fit_detection(self):
         """Use signal-to-noise threshold to identify potential lines.

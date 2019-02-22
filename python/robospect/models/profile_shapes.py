@@ -25,7 +25,7 @@ import robospect.spectra as spectra
 __all__ = ['profile', 'gaussian', 'voigt', 'lorentzian', 'planck', 'skewgauss']
 
 class profile():
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         pass
 
     def f(self, x, Q):
@@ -41,6 +41,9 @@ class profile():
         pass
 
 class gaussian(profile):
+    def __init__(self, **kwargs):
+        self.Nparm = 3
+
     def f(self, x, Q):
         (m, s, A) = Q
         z = (x - m) / s
@@ -75,6 +78,9 @@ class gaussian(profile):
 # https://en.wikipedia.org/wiki/Voigt_profile
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.wofz.html#scipy.special.wofz
 class voigt(profile):
+    def __init__(self, **kwargs):
+        self.Nparm = 4
+
     def f(self, x, Q):
         (m, s, A, eta) = Q
         zR = (x - m) / s
@@ -136,6 +142,8 @@ class voigt(profile):
         return (f, 0, 0, 0)
 
 class skewgauss(profile):
+    def __init__(self, **kwargs):
+        self.Nparm = 4
 
     def gamma(eta):
         delta = eta / np.sqrt(1 + eta*eta)
@@ -169,6 +177,9 @@ class skewgauss(profile):
         return(f)
 
 class lorentzian(profile):
+    def __init__(self, **kwargs):
+        self.Nparm = 3
+
     def fdf(self, x, Q):
         (m, s, A) = Q
         z = 1 / ((x-m)**2 + 0.25 * s**2)
@@ -184,6 +195,9 @@ class lorentzian(profile):
         return(f / (s * np.sqrt(2 * sp.pi)))
 
 class planck(profile):
+    def __init__(self, **kwargs):
+        self.Nparm = 1
+
     def fdf(self, x, Q):
         (T) = Q
         E = np.exp(1 / (T * x))

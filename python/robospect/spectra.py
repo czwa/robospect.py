@@ -57,59 +57,55 @@ class spectrum(object):
         if self.x is not None:
             return len(self.x)
 
-    def fit(self, config=None):
+    def fit(self, **kwargs):
         r"""Method to perform a single fitting iteration.
         """
-        if config is None:
-            iteration = 0
-            max_iteration = 1
-        else:
-            iteration = config.iteration
-            max_iteration = config.max_iteration
+        iteration = kwargs.setdefault('iteration', 0)
+        max_iteration = kwargs.setdefault('max_iteration', 1)
 
         while iteration < max_iteration:
-            self.fit_detection()
-            self.fit_continuum()
-            self.fit_error()
-            self.fit_initial()
-            self.fit_lines()
-            self.fit_deblend()
-            self.fit_repair()
+            self.fit_detection(kwargs)
+            self.fit_continuum(kwargs)
+            self.fit_error(kwargs)
+            self.fit_initial(kwargs)
+            self.fit_lines(kwargs)
+            self.fit_deblend(kwargs)
+            self.fit_repair(kwargs)
 
             iteration += 1
 
         # Write outputs
         print("Outputs may be written now.")
 
-    def fit_repair(self):
+    def fit_repair(self, **kwargs):
         r"""Method to correct spectra for wavelength solution errors and other issues.
 
         To be implemented by subclasses.
         """
         pass
 
-    def fit_detection(self):
+    def fit_detection(self, **kwargs):
         r"""Method to scan spectra for peaks that may be unmeasured lines.
 
         To be implemented by subclasses.
         """
         pass
 
-    def fit_error(self):
+    def fit_error(self, **kwargs):
         r"""Method to measure the empirical noise level of the spectrum.
 
         To be implemented by subclasses.
         """
         pass
 
-    def fit_continuum(self):
+    def fit_continuum(self, **kwargs):
         r"""Method to measure the continuum level of the spectrum.
 
         To be implemented by subclasses.
         """
         pass
 
-    def fit_initial(self):
+    def fit_initial(self, **kwargs):
         r"""Method to do initial linear fits to lines in the catalog.
 
         This method should ideally operate in O(n_lines),
@@ -118,14 +114,14 @@ class spectrum(object):
         """
         pass
 
-    def fit_lines(self):
+    def fit_lines(self, **kwargs):
         r"""Method to do complete fits to lines in the catalog.
 
         To be implemented by subclasses.
         """
         pass
 
-    def fit_deblend(self):
+    def fit_deblend(self, **kwargs):
         r"""Method to deblend lines from each other.
 
         To be implemented by subclasses.

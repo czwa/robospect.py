@@ -30,13 +30,12 @@ class line_gauss_guess(spectra.spectrum):
     modelPhase = 'initial'
     modelParamN = 3
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         print("init initial pre: %s", kwargs)
-        if "initial" not in kwargs.keys():
-            kwargs["initial"] = dict()
-        self.range = kwargs["initial"].setdefault("range", 2.50)
 
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
+        self.config = kwargs.setdefault('initial', dict())
+        self.range = self.config.setdefault('range', 2.50)
 
     def _centroid(self, X, Y):
         V = 0.0

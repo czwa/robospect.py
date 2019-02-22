@@ -27,12 +27,11 @@ class noise_boxcar(spectra.spectrum):
     modelName = 'boxcar'
     modelPhase = 'noise'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         print("boxcar init")
-        if "noise" in kwargs.keys():
-            self.box_size = kwargs["noise"].setdefault("box_size", 25.0)
-
-        super().__init__(*args, *kwargs)
+        super().__init__(**kwargs)
+        self.config = kwargs.setdefault('noise', dict())
+        self.box_size = self.config.setdefault('box_size', 40.0)
 
     def fit_error(self):
         temp = abs(self.y - self.lines - self.continuum)

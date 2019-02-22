@@ -38,7 +38,7 @@ class Config:
                     'initial', 'line', 'deblend']
     rs_models = dict()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         # Internal debug assistance things
         self.command_line = " ".join(args)
         self.version = "dev-201902"
@@ -65,8 +65,9 @@ class Config:
                 setattr(self, f"{modelPhase}_model", self.rs_models[modelPhase][modelName])
 
         print(dir(self))
-
+        # This almost certainly needs to be fixed and updated.
         # Set defaults
+
         if self.continuum_model is None:
             self.continuum_model = self.rs_models["continuum"]["boxcar"]
         if self.detection_model is None:
