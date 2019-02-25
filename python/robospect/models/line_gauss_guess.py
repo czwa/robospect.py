@@ -119,7 +119,7 @@ class line_gauss_guess(spectra.spectrum):
             # flux
             # Attempt to correct flux for peak-vs-sample peak offset.
             # F = F * np.exp(0.5 * ((m - self.x[center])/sigma)**2)
-            F = F * (sigma * np.sqrt(2.0 * np.pi))
+            F = -1.0 * F * (sigma * np.sqrt(2.0 * np.pi))
             # eta
             line.Q = np.array([m, sigma, F])
             #            if self.nparm >= 4:
