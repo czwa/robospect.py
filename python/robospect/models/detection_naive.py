@@ -28,16 +28,17 @@ class detection_naive(spectra.spectrum):
     modelName = 'naive'
     modelPhase = 'detection'
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         print("detection init")
-        print(args)
-        print(kwargs)
 
-        super().__init__(**kwargs)
-        self.config = kwargs.setdefault('detection', dict())
-        self.threshold = self.config.setdefault('threshold', 3.0)
+        super().__init__(*args, **kwargs)
+        self.config = kwargs.setdefault(self.modelPhase, dict())
+        self._config(**self.config)
 
-    def fit_detection(self):
+    def _config(self, **kwargs):
+        self.threshold = kwargs.setdefault('threshold', 3.0)
+
+    def fit_detection(self, **kwargs):
         """Use signal-to-noise threshold to identify potential lines.
 
         Notes
@@ -45,6 +46,8 @@ class detection_naive(spectra.spectrum):
         Iterate over the S/N array, identify pixels that are above the
         detection threshold, and make sure they are local maxima.
         """
+        self._config(**kwargs)
+
         with np.errstate(divide='ignore', invalid='ignore'):
             signal_to_noise = abs((self.y - self.continuum - self.lines)/self.error)
 

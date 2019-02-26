@@ -17,6 +17,7 @@ RS.plot_spectrum(SS, min=4860, max=5000, errors=True,
 
 print("Do fits")
 SS.fit_continuum()
+SS.fit_continuum(box_size=20.0)
 print(SS.continuum)
 SS.fit_detection()
 SS.fit_initial()

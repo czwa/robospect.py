@@ -38,7 +38,7 @@ class Config:
                     'initial', 'line', 'deblend']
     rs_models = dict()
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         # Internal debug assistance things
         self.command_line = " ".join(args)
         self.version = "dev-201902"

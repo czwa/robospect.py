@@ -27,13 +27,25 @@ class continuum_boxcar(spectra.spectrum):
     modelName = 'boxcar'
     modelPhase = 'continuum'
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         print("boxcar init")
-        super().__init__(**kwargs)
-        self.config = kwargs.setdefault('continuum', dict())
-        self.box_size = self.config.setdefault('box_size', 40.0)
+        super().__init__(*args, **kwargs)
+        print("boxcar end super")
+        self.config = kwargs.setdefault(self.modelPhase, dict())
+        print("%s" % (self.config))
+        self._config(**self.config)
+        print("%s" % (self.config))
+        print("%s" % (self))
+        print("boxcar end init")
 
-    def fit_continuum(self):
+    def _config(self, **kwargs):
+        print("K %s" % (kwargs))
+        self.box_size = kwargs.setdefault('box_size', 40.0)
+        print("boxsize: %f" % (self.box_size))
+
+    def fit_continuum(self, **kwargs):
+        self._config(**kwargs)
+
         temp = self.y - self.lines
         for idx, w in enumerate(self.x):
             start = np.searchsorted(self.x, w - self.box_size / 2.0, side='left')

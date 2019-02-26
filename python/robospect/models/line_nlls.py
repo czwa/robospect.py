@@ -29,10 +29,13 @@ class line_nlls(spectra.spectrum):
     modelName = 'nlls'
     modelPhase = 'line'
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.config = kwargs.setdefault('line', dict())
-        self.profile = self.config.setdefault('profile', 'gauss')
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config = kwargs.setdefault(self.modelPhase, dict())
+        self._config(**self.config)
+
+    def _config(self, **kwargs):
+        self.profile = kwargs.setdefault('profile', 'gauss')
 
     def resultFlags(self, status, success):
         if success is True:
