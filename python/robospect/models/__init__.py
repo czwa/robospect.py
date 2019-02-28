@@ -19,8 +19,21 @@
 #
 
 __all__ = ['line_gauss_guess',
+           'line_nlls',
            'detection_naive',
            'continuum_boxcar',
+           'noise_boxcar',
+           'profile_shapes',
        ]
+
+from .profile_shapes import *
+
+from .line_gauss_guess import *
+from .line_nlls import *
+
+from .continuum_boxcar import *
+
+from .noise_boxcar import *
+from .detection_naive import *
 
 

@@ -42,38 +42,39 @@ class Config:
         # Internal debug assistance things
         self.command_line = " ".join(args)
         self.version = "dev-201902"
-
+        print("## %s\n## %s" % (self.command_line, self.version))
         # Pack models into dict for access later
-        for rsModel in dir(models):
+        for rsModel in (dir(models)):
             for modelPhase in self.model_phases:
                 if rsModel.startswith(modelPhase):
+#                    print("%s %s %s %s" % (rsModel, modelPhase, "", ""))
+#                    model = getattr(models, rsModel)
                     model = getattr(models, rsModel)
-                    model = getattr(model, rsModel)
                     modelName = model.modelName
                     self.rs_models.setdefault(modelPhase, dict()).setdefault(modelName, model)
 
         self.arg_dict = self._parse(*args)
-        print(self.arg_dict)
-        print(self.rs_models)
+        print("## Arg dict: %s" % (self.arg_dict))
+        print("## Model dict: %s" % (self.rs_models))
 
         # Model selection setting
         for modelPhase in self.model_phases:
-            modelName = self.arg_dict[modelPhase].setdefault("name", None)
+            modelName = self.arg_dict[modelPhase].pop("name", None)
             if modelName is None:
                 setattr(self, f"{modelPhase}_model", None)
             else:
                 setattr(self, f"{modelPhase}_model", self.rs_models[modelPhase][modelName])
 
-        print(dir(self))
         # This almost certainly needs to be fixed and updated.
         # Set defaults
-
         if self.continuum_model is None:
             self.continuum_model = self.rs_models["continuum"]["boxcar"]
         if self.detection_model is None:
             self.detection_model = self.rs_models["detection"]["naive"]
         if self.initial_model is None:
             self.initial_model = self.rs_models["line"]["pre"]
+        if self.line_model is None:
+            self.line_model = self.rs_models["line"]["nlls"]
 
         # Handle fitting arguments
         fittingArgs = self.arg_dict["fitting"]
@@ -86,6 +87,7 @@ class Config:
         self.log = fittingArgs.setdefault("log", "/tmp/rs.log")
 
         self.iteration = 0
+        print("## Self: %s" % (dir(self)))
         # Directly parse command line here?
         # C = Config(sys.argv) => returns populated config
         # S = C.read_spectra() => returns correct class with data
@@ -145,7 +147,7 @@ class Config:
         S = io.read_ascii_spectrum(self.spectrum_file, spectrum=S)
         if self.line_list is not None:
             S.L = io.read_ascii_linelist(self.line_list, lines=None)
-
+        print("## %s" % (dir(S)))
         return S
 
     def construct_spectra_class(self, *args, **kwargs):
@@ -176,7 +178,9 @@ class Config:
         inheritance_list.append(spectra.spectrum)
 
         inheritance = tuple(inheritance_list)
-        print(inheritance_list)
+        for i in inheritance_list:
+            print(i)
+        # print(inheritance_list)
         class Spectra(*inheritance):
             def __init__(self, *args, **kwargs):
                 print("Spectra init")

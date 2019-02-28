@@ -31,8 +31,6 @@ class spectrum(object):
     """
 
     def __init__(self, *args, **kwargs):
-        print("spectrum init")
-
         self.x = []
         self.y = []
         self.e0 = []

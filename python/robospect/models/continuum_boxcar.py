@@ -28,23 +28,15 @@ class continuum_boxcar(spectra.spectrum):
     modelPhase = 'continuum'
 
     def __init__(self, *args, **kwargs):
-        print("boxcar init")
         super().__init__(*args, **kwargs)
-        print("boxcar end super")
-        self.config = kwargs.setdefault(self.modelPhase, dict())
-        print("%s" % (self.config))
-        self._config(**self.config)
-        print("%s" % (self.config))
-        print("%s" % (self))
-        print("boxcar end init")
+        config = kwargs.pop(self.modelPhase, dict())
+        self._configContinuum(**config)
 
-    def _config(self, **kwargs):
-        print("K %s" % (kwargs))
-        self.box_size = kwargs.setdefault('box_size', 40.0)
-        print("boxsize: %f" % (self.box_size))
+    def _configContinuum(self, **kwargs):
+        self.box_size = kwargs.pop('box_size', 20.0)
 
     def fit_continuum(self, **kwargs):
-        self._config(**kwargs)
+        self._configContinuum(**kwargs)
 
         temp = self.y - self.lines
         for idx, w in enumerate(self.x):

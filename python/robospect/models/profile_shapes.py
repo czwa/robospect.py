@@ -22,16 +22,52 @@ import numpy as np
 import scipy as sp
 import robospect.spectra as spectra
 
-__all__ = ['profile', 'gaussian', 'voigt', 'lorentzian', 'planck', 'skewgauss']
+__all__ = ['profileFromName', 'profile', 'gaussian', 'voigt', 'lorentzian', 'planck', 'skewgauss']
+
+def profileFromName(name):
+    r"""Convert name of profile to a profile class.
+
+    Parameters
+    ----------
+    name : `str`
+        name of profile to select
+
+    Returns
+    -------
+    profile : `robospect.models.profile_shapes.profile`
+        Desired profile.
+
+    Raises
+    ------
+    RuntimeError :
+        Raised if no valid model exists for the requested name.
+
+    Notes
+    -----
+    There's probably a cleaner way to do this.
+    """
+    if name == 'gauss':
+        return gaussian
+    elif name == 'voigt':
+        return voigt
+    elif name == 'lorentzian':
+        return lorentzian
+    elif name == 'planck':
+        return planck
+    elif name == 'skewgauss':
+        return skewgauss
+    else:
+        raise RuntimeError("No such model: %s" % (name))
+
 
 class profile():
     def __init__(self, **kwargs):
         pass
 
-    def f(self, x, Q):
+    def f(self, x, *args, **kwargs): # , x, Q):
         pass
 
-    def df(self, x, Q):
+    def df(self, x, *args, **kwargs):
         pass
 
     def fdf(self, x, Q):
@@ -44,14 +80,25 @@ class gaussian(profile):
     def __init__(self, **kwargs):
         self.Nparm = 3
 
-    def f(self, x, Q):
+    def f(self, x, *args, **kwargs): #, x, Q):
+        print(x)
+        print(args)
+        print(kwargs)
+        if len(args) == 0:
+            return 0.0
         (m, s, A) = Q
         z = (x - m) / s
         dfdA = np.exp(-0.5 * z*z)
         f = A * dfdA
         return f
 
-    def df(self, x, Q):
+    def df(self, x, *args, **kwargs): # % , x, Q):
+        print(x)
+        print(args)
+        print(kwargs)
+        if len(args) == 0:
+            return (0.0, 0.0, 0.0)
+
         (m, s, A) = Q
         z = (x - m) / s
         dfdA = np.exp(-0.5 * z*z)

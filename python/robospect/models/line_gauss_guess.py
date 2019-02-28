@@ -19,9 +19,9 @@
 #
 
 import numpy as np
-import robospect.spectra as spectra
-import robospect.lines as lines
-import robospect.models.profile_shapes as profiles
+from robospect import spectra
+from robospect import lines
+from robospect import models
 
 __all__ = ['line_gauss_guess']
 
@@ -31,15 +31,12 @@ class line_gauss_guess(spectra.spectrum):
     modelParamN = 3
 
     def __init__(self, *args, **kwargs):
-        print("init initial pre: %s", kwargs)
-
         super().__init__(*args, **kwargs)
-        self.config = kwargs.setdefault(self.modelPhase, dict())
-        print("%s %s" % (kwargs, self.config))
-        self._config(**self.config)
+        self.config = kwargs.pop(self.modelPhase, dict())
+        self._configInitial(**self.config)
 
-    def _config(self, **kwargs):
-        self.range = kwargs.setdefault('range', 2.50)
+    def _configInitial(self, **kwargs):
+        self.range = kwargs.pop('range', 2.50)
 
     def _centroid(self, X, Y):
         V = 0.0
@@ -61,9 +58,11 @@ class line_gauss_guess(spectra.spectrum):
 
         return(dx / dy * (value - Y[index - 1]) + X[index - 1])
 
-    def fit_initial(self):
+    def fit_initial(self, **kwargs):
+        self._configInitial(**kwargs)
+
         self.lines = np.copy(self.continuum)
-        P = profiles.gaussian()
+        P = models.gaussian()
         temp = (self.y - self.continuum)
         for line in self.L:
             #           print("%s: %f" % (line.comment, line.x0))
@@ -138,7 +137,7 @@ class line_gauss_guess(spectra.spectrum):
             np.append(line.Q, eta)
 
             line.pQ = line.Q
-            print("    %s" % line.Q)
+#            print("    %s" % line.Q)
 
             for dx in range(start, end):
                 self.lines[dx] = self.lines[dx] - P.eval(self.x[dx], line.Q)

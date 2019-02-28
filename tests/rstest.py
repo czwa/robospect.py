@@ -2,6 +2,7 @@
 
 import sys
 sys.path.append('/home/czw/project/2019/robospect.py/python/')
+sys.path.append('/home/czw/jhome/robospect.py/python/')
 
 import robospect as RS
 

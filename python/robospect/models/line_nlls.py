@@ -19,9 +19,10 @@
 #
 
 import scipy.optimize as spO
+import numpy as np
 import robospect.spectra as spectra
 import robospect.lines as lines
-import robospect.models.profile_shapes as profiles
+from robospect.models.profile_shapes import profileFromName
 
 __all__ = ['line_nlls']
 
@@ -31,11 +32,14 @@ class line_nlls(spectra.spectrum):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.config = kwargs.setdefault(self.modelPhase, dict())
-        self._config(**self.config)
+        config = kwargs.pop(self.modelPhase, dict())
+        self._configLine(**config)
 
-    def _config(self, **kwargs):
-        self.profile = kwargs.setdefault('profile', 'gauss')
+    def _configLine(self, **kwargs):
+        self.profileName = kwargs.pop('profileName', 'gauss')
+        self.profile = profileFromName(self.profileName)
+        print(self.profile)
+        print(dir(self.profile))
 
     def resultFlags(self, status, success):
         if success is True:
@@ -48,12 +52,25 @@ class line_nlls(spectra.spectrum):
 
         return flags
 
-    def fit_line(self):
-        for line in L:
-            optimizeResult = spO.least_squares(self.profile.f, L.Q, jac=self.profile.df,
+
+    def fit_line(self, **kwargs):
+        self._configLine(**kwargs)
+
+        def F(x, *A, **K):
+            print(x)
+            print(*A)
+            print(**K)
+            return self.profile.f(x, A, K)
+
+        def DF(x, *A, **K):
+            return self.profile.df(x, A, K)
+
+        for line in self.L:
+            print(line.Q)
+            optimizeResult = spO.least_squares(F, np.array(line.Q).transpose(), jac=DF,
                                                # loss='soft_l1', ftol=self.tolerance,
                                                # method='lm', args=(L.Q)
                                                )
-            L.Q = optimizeResult.x
-            L.chi = optimizeResult.cost
-            L.flags |= self.resultFlags(optimizeResult.status, optimizeResult.success)
+            line.Q = optimizeResult.x
+            line.chi = optimizeResult.cost
+            line.flags |= self.resultFlags(optimizeResult.status, optimizeResult.success)
