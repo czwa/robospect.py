@@ -18,13 +18,25 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-import robospect.spectra as spectra
-import robospect.lines as lines
+import numpy as np
+from robospect import spectra
+from robospect import lines
+from robospect import models
 
 __all__ = ['line_gauss_guess']
 
 class line_gauss_guess(spectra.spectrum):
-    range = 25.0
+    modelName = 'pre'
+    modelPhase = 'initial'
+    modelParamN = 3
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config = kwargs.pop(self.modelPhase, dict())
+        self._configInitial(**self.config)
+
+    def _configInitial(self, **kwargs):
+        self.range = kwargs.pop('range', 2.50)
 
     def _centroid(self, X, Y):
         V = 0.0
@@ -36,48 +48,96 @@ class line_gauss_guess(spectra.spectrum):
             raise RuntimeError("line_gauss_guess.centroid: division by zero")
         return V/W
 
-    def _eval_interpolant_fraction(self, central_index, value):
-        pass
-    def fit_initial(self):
-        for line in L:
-            start = np.searchsorted(self.x, line.x0 - range, side='left')
-            center= np.searchsorted(self.x, line.x0, side='right')
-            end   = np.searchsorted(self.x, line.x0 + range, side='right')
+    def _interpY(self, X, Y, index, value, side='left'):
+        if side == 'left':
+            dy = Y[index] - Y[index - 1]
+            dx = X[index] - X[index - 1]
+        elif side == 'right':
+            dy = Y[index] - Y[index - 1]
+            dx = X[index] - X[index - 1]
 
-            m = self._centroid(self.x[center-2:center+2],
-                               self.y[center-2:center+2] -
-                               self.continuum[center-2:center+2])
-            F = abs(self.y[center] - self.continuum[center])
+        return(dx / dy * (value - Y[index - 1]) + X[index - 1])
 
-            subX = self.x[start:end]
-            subY = abs(self.y[start:end] - self.continuum[start:end])
+    def fit_initial(self, **kwargs):
+        self._configInitial(**kwargs)
 
-            prior = F + 1
-            for dx in range(center, start):
-                if subY[dx] < prior and subY[dx] > 0.25 * F:
-                    prior = subY[dx]
-                else:
-                    start = dx - 1
+        self.lines = np.copy(self.continuum)
+        P = models.gaussian()
+        temp = (self.y - self.continuum)
+        for line in self.L:
+            #           print("%s: %f" % (line.comment, line.x0))
+            start = np.searchsorted(self.x, line.x0 - self.range, side='left')
+            center= np.searchsorted(self.x, line.x0, side='left')
+            end   = np.searchsorted(self.x, line.x0 + self.range, side='right')
+
+            # mean
+            centroidRange = 2
+            m = self._centroid(self.x[center - centroidRange:center + centroidRange],
+                               temp[center - centroidRange:center + centroidRange])
+            #            print("%f %f %f %d" % (line.x0, m, 1.0, center))
+            center= np.searchsorted(self.x, m, side='left')
+            F = temp[center - 1]
+
+            #            print("%f %f %f %d" % (line.x0, m, F, center))
+
+            hwhm1, hwqm1, hw3qm1 = (0.0, 0.0, 0.0)
+            for idx in range(center - 1, start, -1):
+                if hw3qm1 == 0.0 and abs(temp[idx] / F) < 0.75:
+                    hw3qm1 = self._interpY(self.x, temp, idx, 0.75 * F)
+                if hwhm1 == 0.0 and abs(temp[idx] / F) < 0.5:
+                    hwhm1 = self._interpY(self.x, temp, idx, 0.5 * F)
+                if hwqm1 == 0.0 and abs(temp[idx] / F) < 0.25:
+                    hwqm1 = self._interpY(self.x, temp, idx, 0.5 * F)
                     break
-            prior = F + 1
-            for dx in range(center, end):
-                if subY[dx] < prior and subY[dx] > 0.25 * F:
-                    prior = subY[dx]
-                else:
-                    end = dx + 1
+
+            hwhm2, hwqm2, hw3qm2 = (0.0, 0.0, 0.0)
+            for idx in range(center - 1, end, 1):
+                if hw3qm2 == 0.0 and abs(temp[idx] / F) < 0.75:
+                    hw3qm2 = self._interpY(self.x, temp, idx, 0.75 * F, side='right')
+                if hwhm2 == 0.0 and abs(temp[idx] / F) < 0.5:
+                    hwhm2 = self._interpY(self.x, temp, idx, 0.5 * F, side='right')
+                if hwqm2 == 0.0 and abs(temp[idx] / F) < 0.25:
+                    hwqm2 = self._interpY(self.x, temp, idx, 0.5 * F, side='right')
                     break
+            hwhm1 = abs(hwhm1 - m)
+            hwhm2 = abs(hwhm2 - m)
+            hwqm1 = abs(hwqm1 - m)
+            hwqm2 = abs(hwqm2 - m)
+            hw3qm1 = abs(hw3qm1 - m)
+            hw3qm2 = abs(hw3qm2 - m)
 
-            subX = self.x[start:center]
-            subY = abs(self.y[start:center] - self.continuum[start:center])
-            hwhm1, hwqm1, hw3qm1 = np.interp([0.25 * F, 0.5 * F, 0.75 * F],
-                                             subY, subX)
+            # sigma
+            if (hwhm1 == 0.0 and hwhm2 == 0.0):
+                sigma = (hw3qm2 + hw3qm1) / 1.55223
+            elif (hwhm1 == 0.0 or hwhm1 > 2.0 * hwhm2):
+                sigma = hwhm2 / np.sqrt(2.0 * np.log(2.0))
+            elif (hwhm2 == 0.0 or hwhm2 > 2.0 * hwhm1):
+                sigma = hwhm1 / np.sqrt(2.0 * np.log(2.0))
+            else:
+                sigma = (hwhm2 + hwhm1) / (2.0 * np.sqrt(2.0 * np.log(2.0)))
+            if sigma == 0.0:
+                sigma = self.x[center + 1] - self.x[center]
 
-            subX = self.x[center:end]
-            subY = abs(self.y[center:end] - self.continuum[center:end])
-            hwhm2, hwqm2, hw3qm2 = np.interp([0.25 * F, 0.5 * F, 0.75 * F],
-                                             subY, subX)
+            # flux
+            # Attempt to correct flux for peak-vs-sample peak offset.
+            # F = F * np.exp(0.5 * ((m - self.x[center])/sigma)**2)
+            F = -1.0 * F * (sigma * np.sqrt(2.0 * np.pi))
+            # eta
+            line.Q = np.array([m, sigma, F])
+            #            if self.nparm >= 4:
+            if (hw3qm2 + hw3qm1) == 0:
+                hw3qm2 = 1e-3;
+            peakiness = (hwhm2 + hwhm1) / (hw3qm2 + hw3qm1)
+            if peakiness > 1.68:
+                eta = -132.4711 + 79.3913 * peakiness
+            else:
+                eta = -18.7118 + 11.9942 * peakiness
+            if eta < 0.0:
+                eta = 0.0
+            np.append(line.Q, eta)
 
-        # sigma
+            line.pQ = line.Q
+#            print("    %s" % line.Q)
 
-        # flux
-        pass
+            for dx in range(start, end):
+                self.lines[dx] = self.lines[dx] - P.eval(self.x[dx], line.Q)

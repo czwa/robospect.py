@@ -30,56 +30,13 @@ class spectrum(object):
     r"""Data, model, and fitting method code.
     """
 
-    # x = None
-    """`numpy.ndarray` : Spectra wavelength data."""
-    # y = None
-    """`numpy.ndarray` : Spectra intensity data."""
-    # e0 = None
-    """`numpy.ndarray` : Spectra input error."""
-    #  comment = None
-    """`List` of `str` : String comments for the measurement line."""
-
-    # continuum = None
-    """`numpy.ndarray` : Current continuum model at the corresponding wavelength index."""
-    #lines = None
-    """`numpy.ndarray` : Current line model at the corresponding wavelength index."""
-    #alternate = None
-    """`numpy.ndarray` : Current alternate line model at the corresponding wavelength index."""
-    #error = None
-    """`numpy.ndarray` : Current noise estimate at the corresponding wavelength index."""
-
-    #L = []
-    """`List` of `robospect.lines.line`"""
-    #filename = None
-    """`str` containing the file the spectrum was read from."""
-
-    def __init__(self, x=None, y=None, e0=None, comment=None, L=None, filename=None):
-        if x is not None:
-            self.x = np.array(x)
-        else:
-            self.x = []
-        if y is not None:
-            self.y = np.array(y)
-        else:
-            self.y = []
-        if e0 is not None:
-            self.e0 = np.array(e0)
-        else:
-            self.e0 = []
-        if comment is not None:
-            self.comment = comment
-        else:
-            self.comment = []
-        if L is not None:
-            self.L = L
-        else:
-            self.L = []
-
-        if filename is not None:
-            self.filename = filename
-
-        if len(self.x) != len(self.y):
-            raise RuntimeError("Spectra does not have the same number of flux and wavelength samples.")
+    def __init__(self, *args, **kwargs):
+        self.x = []
+        self.y = []
+        self.e0 = []
+        self.comment = []
+        self.L = []
+        self.filename = ""
 
         self.continuum = np.ones(len(self.x))
         self.lines = np.zeros(len(self.x))
@@ -98,23 +55,55 @@ class spectrum(object):
         if self.x is not None:
             return len(self.x)
 
-    def fit(self):
+    def fit(self, **kwargs):
         r"""Method to perform a single fitting iteration.
         """
-        self.fit_detection()
-        self.fit_initial()
-        self.fit_continuum()
-        self.fit_error()
-        self.fit_lines()
+        iteration = kwargs.setdefault('iteration', 0)
+        max_iteration = kwargs.setdefault('max_iteration', 1)
 
-    def fit_detection(self):
+        while iteration < max_iteration:
+            self.fit_detection(kwargs)
+            self.fit_continuum(kwargs)
+            self.fit_error(kwargs)
+            self.fit_initial(kwargs)
+            self.fit_lines(kwargs)
+            self.fit_deblend(kwargs)
+            self.fit_repair(kwargs)
+
+            iteration += 1
+
+        # Write outputs
+        print("Outputs may be written now.")
+
+    def fit_repair(self, **kwargs):
+        r"""Method to correct spectra for wavelength solution errors and other issues.
+
+        To be implemented by subclasses.
+        """
+        pass
+
+    def fit_detection(self, **kwargs):
         r"""Method to scan spectra for peaks that may be unmeasured lines.
 
         To be implemented by subclasses.
         """
         pass
 
-    def fit_initial(self):
+    def fit_error(self, **kwargs):
+        r"""Method to measure the empirical noise level of the spectrum.
+
+        To be implemented by subclasses.
+        """
+        pass
+
+    def fit_continuum(self, **kwargs):
+        r"""Method to measure the continuum level of the spectrum.
+
+        To be implemented by subclasses.
+        """
+        pass
+
+    def fit_initial(self, **kwargs):
         r"""Method to do initial linear fits to lines in the catalog.
 
         This method should ideally operate in O(n_lines),
@@ -123,23 +112,17 @@ class spectrum(object):
         """
         pass
 
-    def fit_lines(self):
+    def fit_lines(self, **kwargs):
         r"""Method to do complete fits to lines in the catalog.
 
         To be implemented by subclasses.
         """
         pass
 
-    def fit_continuum(self):
-        r"""Method to measure the continuum level of the spectrum.
+    def fit_deblend(self, **kwargs):
+        r"""Method to deblend lines from each other.
 
         To be implemented by subclasses.
         """
         pass
 
-    def fit_error(self):
-        r"""Method to measure the empirical noise level of the spectrum.
-
-        To be implemented by subclasses.
-        """
-        pass

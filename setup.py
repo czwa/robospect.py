@@ -17,23 +17,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+from setuptools import setup
 
-__all__ = ['line_gauss_guess',
-           'line_nlls',
-           'detection_naive',
-           'continuum_boxcar',
-           'noise_boxcar',
-           'profile_shapes',
-       ]
-
-from .profile_shapes import *
-
-from .line_gauss_guess import *
-from .line_nlls import *
-
-from .continuum_boxcar import *
-
-from .noise_boxcar import *
-from .detection_naive import *
+setup(
+    name="RoboSpect",
+    version="dev-201902",
+    author="Christopher Z Waters & Julie Hollek",
+    author_email="czw@princeton.edu",
+    packages=["python/robospect"],
+    scripts=[],
+    url="http://www.ifa.hawaii.edu/~watersc1/robospect.html",
+    license="LICENSE",
+    description="Automated equivalent-width measurement for astronomical spectra",
+    long_description="",
+    python_requires=">3.6.5",
+    install_requires=[
+        'numpy',
+        'scipy'
+    ],
+)
 
 

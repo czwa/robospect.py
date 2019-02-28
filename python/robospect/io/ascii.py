@@ -22,7 +22,7 @@ import numpy as np
 import robospect.spectra as spectra
 from robospect.lines import line, sortLines
 
-__all__ = ['read_ascii_spectrum']
+__all__ = ['read_ascii_spectrum', 'read_ascii_linelist']
 
 def read_ascii_linelist(filename, lines=None):
     """Read list of lines to fit stored in ascii format.
@@ -41,6 +41,8 @@ def read_ascii_linelist(filename, lines=None):
     """
     if lines is None:
         lines = []
+    if filename is None:
+        raise RuntimeError("No line list supplied to read.")
 
     f = open(filename, "r")
     for l in f:
@@ -115,15 +117,21 @@ def read_ascii_spectrum(filename, spectrum=None):
         index += 1
 
     if spectrum is None:
-        spectrum = spectra.spectrum(x, y, e0=e0, comment=comment, filename=filename)
-    else:
-        spectrum.x = np.array(x)
-        spectrum.y = np.array(y)
-        if len(e0) > 0:
-            spectrum.e0 = np.array(e0)
-        if len(comment) > 0:
-            spectrum.comment = comment
-        spectrum.filename = filename
+        spectrum = spectra.spectrum()
+
+    spectrum.x = np.array(x)
+    spectrum.y = np.array(y)
+    if len(e0) > 0:
+        spectrum.e0 = np.array(e0)
+    if len(comment) > 0:
+        spectrum.comment = comment
+    spectrum.filename = filename
+
+    spectrum.continuum = np.ones(len(spectrum.x))
+    spectrum.lines = np.zeros(len(spectrum.x))
+    spectrum.alternate = np.zeros(len(spectrum.x))
+    spectrum.error = np.zeros(len(spectrum.x))
+
 
     return spectrum
 

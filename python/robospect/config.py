@@ -18,10 +18,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+import argparse
+
 from robospect import spectra
 from robospect import models
+from robospect import io
 
 __all__ = ['Config']
+
 
 class Config:
     r"""Configuration handler for ROBOSPECT.
@@ -30,62 +34,123 @@ class Config:
     not guaranteed to be implemented on any dev- version of the code.
 
     """
-    def __init__(self, *args):
+    model_phases = ['repair', 'detection', 'noise', 'continuum',
+                    'initial', 'line', 'deblend']
+    rs_models = dict()
+
+    def __init__(self, *args, **kwargs):
         # Internal debug assistance things
         self.command_line = " ".join(args)
-        self.version = "dev-201901"
+        self.version = "dev-201902"
+        print("## %s\n## %s" % (self.command_line, self.version))
+        # Pack models into dict for access later
+        for rsModel in (dir(models)):
+            for modelPhase in self.model_phases:
+                if rsModel.startswith(modelPhase):
+#                    print("%s %s %s %s" % (rsModel, modelPhase, "", ""))
+#                    model = getattr(models, rsModel)
+                    model = getattr(models, rsModel)
+                    modelName = model.modelName
+                    self.rs_models.setdefault(modelPhase, dict()).setdefault(modelName, model)
 
-        # Input options
-        self.spectrum_file = None
-        self.line_list = None
-        self.spectrum_order = 0
-        self.flux_calibrated = False
+        self.arg_dict = self._parse(*args)
+        print("## Arg dict: %s" % (self.arg_dict))
+        print("## Model dict: %s" % (self.rs_models))
 
-        # Options that actually belong to a model, but I'm copying here
-        # from rs.c for now.
-        self.max_iterations = 1
-        self.tolerance = 1e-3
+        # Model selection setting
+        for modelPhase in self.model_phases:
+            modelName = self.arg_dict[modelPhase].pop("name", None)
+            if modelName is None:
+                setattr(self, f"{modelPhase}_model", None)
+            else:
+                setattr(self, f"{modelPhase}_model", self.rs_models[modelPhase][modelName])
 
-        self.radial_velocity = 0.0
-        self.rv_range = 300.0
-        self.rv_max_error = 1e-2
-        self.rv_steps = 100
-        self.rv_sigma = 10.0
+        # This almost certainly needs to be fixed and updated.
+        # Set defaults
+        if self.continuum_model is None:
+            self.continuum_model = self.rs_models["continuum"]["boxcar"]
+        if self.detection_model is None:
+            self.detection_model = self.rs_models["detection"]["naive"]
+        if self.initial_model is None:
+            self.initial_model = self.rs_models["line"]["pre"]
+        if self.line_model is None:
+            self.line_model = self.rs_models["line"]["nlls"]
 
-        self.detection_threshold = 3.0
+        # Handle fitting arguments
+        fittingArgs = self.arg_dict["fitting"]
+        self.spectrum_file = fittingArgs.setdefault("spectrum_file", None)
+        self.line_list = fittingArgs.setdefault("line_list", None)
+        self.max_iterations = fittingArgs.setdefault("max_iterations", 1)
+        self.tolerance = fittingArgs.setdefault("tolerance", 1e-3)
+        self.output = fittingArgs.setdefault("output", "/tmp/rs")
+        self.plot_all = fittingArgs.setdefault("plot_all", False)
+        self.log = fittingArgs.setdefault("log", "/tmp/rs.log")
 
-        self.continuum_box = 40.0
-        self.noise_box = 40.0
-
-        self.line_abs_deviation = 10.0
-        self.line_rel_deviation = 2.0
-
-        self.deblend_radius = 4.0
-        self.deblend_ratio = 0.1
-        self.deblend_iterations = 3
-
-        # Output options
-        self.path_base = None
-        self.save_temp = False
-        self.plot_all = False
-        self.verbose = 0x00
-        self.log = None
-
-        # Model selection stuff
-        self.radial_velocity_model = None
-        self.detection_model = None
-        self.noise_model = None
-        self.continuum_model = None
-        self.line_model = None
-        self.deblend_model = None
-
+        self.iteration = 0
+        print("## Self: %s" % (dir(self)))
         # Directly parse command line here?
         # C = Config(sys.argv) => returns populated config
         # S = C.read_spectra() => returns correct class with data
         # R = S.run_fit()      => returns results
         # C.write_results(R)   => does output IO?
 
-    def construct_spectra_class(self):
+    def _parse(self, *args):
+        """Parse command line options into appropriate categories.
+
+        Parameters
+        ----------
+        args : `List` of `str`
+            List of command line arguments to parse
+
+        Returns
+        -------
+        arguments : `dict`
+            Dictionary of dictionaries containing parameter/values
+            split into categories.
+
+        Notes
+        -----
+
+        I haven't fully decided how this should work, but I think my
+        current plan is to split arguments into category, instantiate
+        the models (arguments['category']['model'] most likely), and
+        then pass the argument dict to a parser in that model.  The
+        alternate is to have this just append into a list of strings
+        for each category, and then have each model call ArgParse to
+        split out the parameters.  The alternate has the benefit that
+        each model can be more arbitrary in the acceptable parameters.
+        """
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-R', "--repair", nargs=2, action='append')
+        parser.add_argument('-D', "--detection", nargs=2, action='append')
+        parser.add_argument('-N', "--noise", nargs=2, action='append')
+        parser.add_argument('-C', "--continuum", nargs=2, action='append')
+        parser.add_argument('-I', "--initial", nargs=2, action='append')
+        parser.add_argument('-L', "--line", nargs=2, action='append')
+        parser.add_argument('-B', "--deblend", nargs=2, action='append')
+        parser.add_argument('-F', "--fitting", nargs=2, action='append')
+        parsed, unparsed = parser.parse_known_args(*args)
+
+        arguments = dict()
+        for argClass in vars(parsed).keys():
+            if vars(parsed)[argClass] is None:
+                arguments[argClass] = dict()
+            else:
+                arguments[argClass] = {t[0]: t[1] for t in vars(parsed)[argClass]}
+
+        return arguments
+
+    def read_spectrum(self, spectrum_file=None):
+        S = self.construct_spectra_class(None, **self.arg_dict)
+        if spectrum_file is not None:
+            self.spectrum_file = spectrum_file
+        S = io.read_ascii_spectrum(self.spectrum_file, spectrum=S)
+        if self.line_list is not None:
+            S.L = io.read_ascii_linelist(self.line_list, lines=None)
+        print("## %s" % (dir(S)))
+        return S
+
+    def construct_spectra_class(self, *args, **kwargs):
         r"""Construct the spectra class.
 
         Using the information in the configuration, construct a
@@ -106,13 +171,20 @@ class Config:
             inheritance_list.append(self.noise_model)
         if self.continuum_model is not None:
             inheritance_list.append(self.continuum_model)
+        if self.initial_model is not None:
+            inheritance_list.append(self.initial_model)
         if self.line_model is not None:
             inheritance_list.append(self.line_model)
         inheritance_list.append(spectra.spectrum)
 
         inheritance = tuple(inheritance_list)
+        for i in inheritance_list:
+            print(i)
+        # print(inheritance_list)
         class Spectra(*inheritance):
-#            __metaclass__ = spectra.M_spectrum
+            def __init__(self, *args, **kwargs):
+                print("Spectra init")
+                super().__init__(*args, **kwargs)
 
             def copy_data(self, spectrum):
                 self.x = spectrum.x
@@ -127,4 +199,4 @@ class Config:
                 self.L = spectrum.L
                 self.filename = spectrum.filename
 
-        return Spectra()
+        return Spectra(*args, **kwargs)
