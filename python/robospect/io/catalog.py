@@ -42,10 +42,50 @@ def write_ascii_catalog(filename, lines):
         f.write ("## Units\n")
         f.write ("## Headers\n")
 
-        for l in lines:
+        for L in lines:
             f.write ("%.4f %s   %s   %s       %f   %f   %f 0x%x   %d  %s\n" %
-                     (l.x0, l.Q, l.dQ, l.pQ,
-                      0.0, 0.0,
-                      #                      _eqw(l.Q[2]), _eqw(l.dQ[2]),
-                      l.chi, l.flags, l.blend, l.comment))
+                     (L.x0,
+                      ' '.join(map(str, L.Q)),
+                      ' '.join(map(str, L.dQ)),
+                      ' '.join(map(str, L.pQ)),
+                      _eqw(L.Q[2]), _eqw(L.dQ[2]),
+                      L.chi, L.flags, L.blend, L.comment))
 
+
+try:
+    import astropy.io.fits as F
+
+    __all__.append(['write_fits_catalog'])
+
+    def write_fits_catalog(filename, lines):
+        arr_x0 = np.array([])
+        arr_chi = np.array([])
+        arr_flags = np.array([])
+        arr_blend = np.array([])
+        arr_comment = []
+        arr_Q = np.array([])
+        arr_dQ = np.array([])
+        arr_pQ = np.array([])
+
+        for L in lines:
+            arr_x0.append(L.x0)
+            arr_chi.append(L.chi)
+            arr_flags.append(L.flags)
+            arr_blend.append(L.blend)
+            arr_comment.append(L.comment)
+            # CZW: etc.
+
+        col_x0 = F.Column(name='line_center', format='D', unit='Angstroms', array=arr_x0)
+        col_Q  = F.Column(name='solution', format='3E', unit='', array=arr_Q)
+        col_flags = F.Column(name='fit_flags', format='K', unit='', array=arr_flags)
+        # CZW: etc.
+
+        hdu = F.BinTableHDU.from_columns([col_x0, col_Q, col_flags])
+
+        out = F.HDUList()
+        out.append(hdu)
+        out.writeto(filename, overwrite=False)
+        out.close()
+
+except ImportError:
+    pass
