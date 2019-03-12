@@ -19,11 +19,10 @@
 #
 
 import numpy as np
-from robospect.config import *
-from robospect.lines import line
-from robospect.spectra import spectrum
+from robospect import spectra
+from robospect.lines import line, sortLines
 
-__all__ = ['write_ascii_catalog'] # , 'write_fits_catalog', 'write_sqlite_catalog']
+__all__ = ['write_ascii_catalog', 'write_fits_catalog'] # 'write_sqlite_catalog', 'write_json_catalog']
 
 def _eqw(F):
     return -1000.0 * F
@@ -42,20 +41,20 @@ def write_ascii_catalog(filename, lines):
         f.write ("## Units\n")
         f.write ("## Headers\n")
 
-        for L in lines:
-            f.write ("%.4f %s   %s   %s       %f   %f   %f 0x%x   %d  %s\n" %
-                     (L.x0,
-                      ' '.join(map(str, L.Q)),
-                      ' '.join(map(str, L.dQ)),
-                      ' '.join(map(str, L.pQ)),
-                      _eqw(L.Q[2]), _eqw(L.dQ[2]),
-                      L.chi, L.flags, L.blend, L.comment))
+        with np.printoptions(formatter={'float': '{: 0.6f}'.format}):
+            for L in lines:
+                if len(L.dQ) < 2:
+                    L.dQ = 0.1 * L.Q
+                    L.flags = L.flags | 0x8000
+
+                f.write ("%.4f %s   %s   %s       %f   %f   %f 0x%x   %d  %s\n" %
+                         (L.x0, L.Q, L.dQ, L.pQ,
+                          _eqw(L.Q[2]), _eqw(L.dQ[2]),
+                          L.chi, L.flags, L.blend, L.comment))
 
 
 try:
     import astropy.io.fits as F
-
-    __all__.append(['write_fits_catalog'])
 
     def write_fits_catalog(filename, lines):
         arr_x0 = np.array([])
@@ -88,4 +87,6 @@ try:
         out.close()
 
 except ImportError:
-    pass
+    def write_fits_catalog(filename, lines):
+        warn("Cannot find astropy.io.fits library.")
+        return(write_ascii_catalog(filename, lines))

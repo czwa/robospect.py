@@ -19,8 +19,8 @@
 #
 
 import numpy as np
-import robospect.spectra as spectra
-from robospect.lines import line, sortLines
+from robospect import spectra
+from robospect import lines, sortLines
 
 __all__ = ['read_ascii_spectrum', 'read_ascii_linelist']
 
