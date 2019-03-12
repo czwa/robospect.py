@@ -51,16 +51,12 @@ class line_nlls(spectra.spectrum):
 
     def nlls_F(self, x, *A):
         chi = 0
-        low = x[0] - 3.0 * abs(x[1])
-        high = x[0] + 3.0 * abs(x[1])
-        R = A[1] - A[2] - self.profile.f(A[0], x)
+        R = A[1] - self.profile.f(A[0], x)
 
         return R
 
     def nlls_DF(self, x, *A):
         chi = np.zeros_like(x)
-        low = x[0] - 3.0 * x[1]
-        high = x[0] + 3.0 * x[1]
         dR = self.profile.df(A[0], x)
 
         return -1.0 * np.array(dR).transpose()
@@ -71,13 +67,23 @@ class line_nlls(spectra.spectrum):
 
         for line in self.L:
             print(line.Q)
+            start = np.searchsorted(self.x, line.Q[0] - 5.0 * abs(line.Q[1]), side='left')
+            end   = np.searchsorted(self.x, line.Q[0] + 5.0 * abs(line.Q[1]), side='right')
+
+            while (end - start < 5):
+                end = end + 1
+                start = start - 1
+
+            T = self.x[start:end]
+            Y = self.y[start:end] - self.continuum[start:end]
+
             optimizeResult = spO.least_squares(self.nlls_F, np.array(line.Q).transpose(), jac=self.nlls_DF,
                                                # loss='soft_l1', ftol=self.tolerance,
-                                               # method='lm', args=(L.Q)
-                                               args = (self.x, self.y, self.continuum)
+                                               method='lm',
+                                               args = (T, Y)
                                                )
             line.Q = optimizeResult.x
             line.chi = optimizeResult.cost
             line.flags |= self.resultFlags(optimizeResult.status, optimizeResult.success)
-            with np.printoptions(precision=4, suppress=True):
+            with np.printoptions(formatter={'float': '{: 0.3f}'.format}):
                 print("  ", line.chi, line.flags, line.pQ, line.Q)
