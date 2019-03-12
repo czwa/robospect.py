@@ -86,7 +86,7 @@ class gaussian(profile):
         z = (x - m) / s
         dfdA = np.exp(-0.5 * z*z)
         f = A * dfdA
-        return f / (s * np.sqrt(2.0 * np.pi))
+        return f
 
     def df(self, x, Q):
         if len(Q) == 0:
@@ -113,7 +113,7 @@ class gaussian(profile):
 
     def eval(self, x, Q):
         (m, s, A) = Q
-        return self.f(x, Q)
+        return self.f(x, Q) / (s * np.sqrt(2.0 * np.pi))
 
 # https://en.wikipedia.org/wiki/Voigt_profile
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.wofz.html#scipy.special.wofz
