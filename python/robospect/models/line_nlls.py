@@ -20,8 +20,7 @@
 
 import scipy.optimize as spO
 import numpy as np
-import robospect.spectra as spectra
-import robospect.lines as lines
+from robospect import spectra
 from robospect.models.profile_shapes import profileFromName
 
 __all__ = ['line_nlls']
