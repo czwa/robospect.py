@@ -20,7 +20,6 @@
 
 import numpy as np
 import scipy as sp
-import robospect.spectra as spectra
 
 __all__ = ['profileFromName', 'profile', 'gaussian', 'voigt', 'lorentzian', 'planck', 'skewgauss']
 
@@ -47,15 +46,15 @@ def profileFromName(name):
     There's probably a cleaner way to do this.
     """
     if name == 'gauss':
-        return gaussian
+        return gaussian()
     elif name == 'voigt':
-        return voigt
+        return voigt()
     elif name == 'lorentzian':
-        return lorentzian
+        return lorentzian()
     elif name == 'planck':
-        return planck
+        return planck()
     elif name == 'skewgauss':
-        return skewgauss
+        return skewgauss()
     else:
         raise RuntimeError("No such model: %s" % (name))
 
@@ -64,7 +63,7 @@ class profile():
     def __init__(self, **kwargs):
         pass
 
-    def f(self, x, *args, **kwargs): # , x, Q):
+    def f(self, x, *args, **kwargs):
         pass
 
     def df(self, x, *args, **kwargs):
@@ -80,23 +79,17 @@ class gaussian(profile):
     def __init__(self, **kwargs):
         self.Nparm = 3
 
-    def f(self, x, *args, **kwargs): #, x, Q):
-        print(x)
-        print(args)
-        print(kwargs)
-        if len(args) == 0:
+    def f(self, x, Q):
+        if len(Q) == 0:
             return 0.0
         (m, s, A) = Q
         z = (x - m) / s
         dfdA = np.exp(-0.5 * z*z)
         f = A * dfdA
-        return f
+        return f / (s * np.sqrt(2.0 * np.pi))
 
-    def df(self, x, *args, **kwargs): # % , x, Q):
-        print(x)
-        print(args)
-        print(kwargs)
-        if len(args) == 0:
+    def df(self, x, Q):
+        if len(Q) == 0:
             return (0.0, 0.0, 0.0)
 
         (m, s, A) = Q
@@ -120,7 +113,7 @@ class gaussian(profile):
 
     def eval(self, x, Q):
         (m, s, A) = Q
-        return self.f(x, Q) / (s * np.sqrt(2.0 * np.pi))
+        return self.f(x, Q)
 
 # https://en.wikipedia.org/wiki/Voigt_profile
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.wofz.html#scipy.special.wofz
