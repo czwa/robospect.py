@@ -62,18 +62,19 @@ class spectrum(object):
         max_iteration = kwargs.setdefault('max_iteration', 1)
 
         while iteration < max_iteration:
-            self.fit_detection(kwargs)
-            self.fit_continuum(kwargs)
-            self.fit_error(kwargs)
-            self.fit_initial(kwargs)
-            self.fit_lines(kwargs)
-            self.fit_deblend(kwargs)
-            self.fit_repair(kwargs)
+            self.fit_detection(**kwargs)
+            self.fit_continuum(**kwargs)
+            self.fit_error(**kwargs)
+            self.fit_initial(**kwargs)
+            self.line_update(**kwargs)
+            self.fit_lines(**kwargs)
+            self.line_update(**kwargs)
+            self.fit_deblend(**kwargs)
+            self.fit_repair(**kwargs)
 
             iteration += 1
 
         # Write outputs
-        print("Outputs may be written now.")
 
     def fit_repair(self, **kwargs):
         r"""Method to correct spectra for wavelength solution errors and other issues.
