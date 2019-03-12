@@ -41,7 +41,7 @@ class Config:
     def __init__(self, *args, **kwargs):
         # Internal debug assistance things
         self.command_line = " ".join(args)
-        self.version = "dev-201902"
+        self.version = "dev-201903"
         print("## %s\n## %s" % (self.command_line, self.version))
         # Pack models into dict for access later
         for rsModel in (dir(models)):
