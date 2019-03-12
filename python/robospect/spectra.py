@@ -126,3 +126,14 @@ class spectrum(object):
         """
         pass
 
+    def line_update(self, **kwargs):
+        r"""Method to update current line model based on line profile parameters.
+
+        """
+        self.lines = np.copy(self.continuum)
+        for line in self.L:
+            start = np.searchsorted(self.x, line.x0 - 100.0, side='left')
+            end   = np.searchsorted(self.x, line.x0 + 100.0, side='right')
+            for dx in range(start, end):
+                self.lines[dx] = self.lines[dx] + self.profile.f(self.x[dx], line.Q)
+
