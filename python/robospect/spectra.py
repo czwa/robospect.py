@@ -63,12 +63,16 @@ class spectrum(object):
 
         while iteration < max_iteration:
             self.fit_detection(**kwargs)
+
             self.fit_continuum(**kwargs)
             self.fit_error(**kwargs)
+
             self.fit_initial(**kwargs)
             self.line_update(**kwargs)
+
             self.fit_lines(**kwargs)
             self.line_update(**kwargs)
+
             self.fit_deblend(**kwargs)
             self.fit_repair(**kwargs)
 
