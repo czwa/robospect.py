@@ -135,6 +135,10 @@ class spectrum(object):
         r"""Method to update current line model based on line profile parameters.
 
         """
+        position_error = kwargs.pop("position_error", 5.0)
+        max_sigma = kwargs.pop("max_sigma", 100.0)
+        max_flux = kwargs.pop("max_flux", 2.5)
+
         self.lines = np.copy(self.continuum)
         for line in self.L:
             start = np.searchsorted(self.x, line.x0 - 100.0, side='left')
