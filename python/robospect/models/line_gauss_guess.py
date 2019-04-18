@@ -137,7 +137,6 @@ class line_gauss_guess(spectra.spectrum):
             np.append(line.Q, eta)
 
             line.pQ = line.Q
-#            print("    %s" % line.Q)
-
+            #            print("    %s" % line.Q)
             for dx in range(start, end):
                 self.lines[dx] = self.lines[dx] - P.eval(self.x[dx], line.Q)

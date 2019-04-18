@@ -18,34 +18,93 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+import sys
+import contextlib
 import numpy as np
-from robospect.config import *
-from robospect.lines import line
-from robospect.spectra import spectrum
+from robospect import spectra
+from robospect.lines import line, sortLines
 
-__all__ = ['write_ascii_catalog'] # , 'write_fits_catalog', 'write_sqlite_catalog']
+__all__ = ['write_ascii_catalog']
+#, 'write_fits_catalog']
+# 'write_sqlite_catalog', 'write_json_catalog']
+
+@contextlib.contextmanager
+def smart_open(filename=None):
+    if filename is not None:
+        f = open(filename, "w")
+    else:
+        f = sys.stdout
+
+    try:
+        yield f
+    finally:
+        if f is not sys.stdout:
+            f.close()
+
 
 def _eqw(F):
     return -1000.0 * F
 
+
 def write_ascii_catalog(filename, lines):
     """Write list of lines to ascii format
     """
-    if filename is None:
-        raise RuntimeError("No output catalog file specified")
     if lines is None:
         raise RuntimeError("No lines specified to write")
     np.set_printoptions(precision=4, suppress=True)
-    with open(filename, "w") as f:
+    with smart_open(filename) as f:
         f.write ("## Robospect line catalog\n")
         f.write ("## Flags:\n")
         f.write ("## Units\n")
         f.write ("## Headers\n")
 
-        for l in lines:
-            f.write ("%.4f %s   %s   %s       %f   %f   %f 0x%x   %d  %s\n" %
-                     (l.x0, l.Q, l.dQ, l.pQ,
-                      0.0, 0.0,
-                      #                      _eqw(l.Q[2]), _eqw(l.dQ[2]),
-                      l.chi, l.flags, l.blend, l.comment))
+        # This is not a context manager, as that only exists in np 1.16?
+        np.set_printoptions(formatter={'float': '{: 0.6f}'.format})
+        for L in lines:
+            if len(L.dQ) < 2:
+                L.dQ = 0.1 * L.Q
+                L.flags = L.flags | 0x8000
 
+            f.write ("%.4f %s   %s   %s       %f   %f   %f 0x%x   %d  %s\n" %
+                     (L.x0, L.Q, L.dQ, L.pQ,
+                      _eqw(L.Q[2]), _eqw(L.dQ[2]),
+                      L.chi, L.flags, L.blend, L.comment))
+
+
+try:
+    import astropy.io.fits as F
+
+    def write_fits_catalog(filename, lines):
+        arr_x0 = np.array([])
+        arr_chi = np.array([])
+        arr_flags = np.array([])
+        arr_blend = np.array([])
+        arr_comment = []
+        arr_Q = np.array([])
+        arr_dQ = np.array([])
+        arr_pQ = np.array([])
+
+        for L in lines:
+            arr_x0.append(L.x0)
+            arr_chi.append(L.chi)
+            arr_flags.append(L.flags)
+            arr_blend.append(L.blend)
+            arr_comment.append(L.comment)
+            # CZW: etc.
+
+        col_x0 = F.Column(name='line_center', format='D', unit='Angstroms', array=arr_x0)
+        col_Q  = F.Column(name='solution', format='3E', unit='', array=arr_Q)
+        col_flags = F.Column(name='fit_flags', format='K', unit='', array=arr_flags)
+        # CZW: etc.
+
+        hdu = F.BinTableHDU.from_columns([col_x0, col_Q, col_flags])
+
+        out = F.HDUList()
+        out.append(hdu)
+        out.writeto(filename, overwrite=False)
+        out.close()
+
+except ImportError:
+    def write_fits_catalog(filename, lines):
+        warn("Cannot find astropy.io.fits library.")
+        return(write_ascii_catalog(filename, lines))

@@ -19,7 +19,7 @@
 #
 
 import numpy as np
-import robospect.spectra as spectra
+from robospect import spectra
 
 __all__ = ['continuum_boxcar']
 
@@ -49,5 +49,5 @@ class continuum_boxcar(spectra.spectrum):
             noise = abs(noise - self.continuum[idx])
             self.error[idx] = 1.4826 * np.median(noise)
 
-    def fit_error(self):
+    def fit_error(self, **kwargs):
         pass

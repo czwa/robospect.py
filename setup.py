@@ -17,15 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
-    name="RoboSpect",
-    version="dev-201902",
+    name="robospect",
+    version="0.dev201903",
     author="Christopher Z Waters & Julie Hollek",
     author_email="czw@princeton.edu",
-    packages=["python/robospect"],
-    scripts=[],
+    package_dir={'':'python'},
+    packages=find_packages(where="./python/"),
+    scripts=["bin/rSpect.py"],
     url="http://www.ifa.hawaii.edu/~watersc1/robospect.html",
     license="LICENSE",
     description="Automated equivalent-width measurement for astronomical spectra",

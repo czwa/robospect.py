@@ -62,18 +62,23 @@ class spectrum(object):
         max_iteration = kwargs.setdefault('max_iteration', 1)
 
         while iteration < max_iteration:
-            self.fit_detection(kwargs)
-            self.fit_continuum(kwargs)
-            self.fit_error(kwargs)
-            self.fit_initial(kwargs)
-            self.fit_lines(kwargs)
-            self.fit_deblend(kwargs)
-            self.fit_repair(kwargs)
+            self.fit_continuum(**kwargs)
+            self.fit_error(**kwargs)
+
+            self.fit_detection(**kwargs)
+
+            self.fit_initial(**kwargs)
+            self.line_update(**kwargs)
+
+            self.fit_lines(**kwargs)
+            self.line_update(**kwargs)
+
+            self.fit_deblend(**kwargs)
+            self.fit_repair(**kwargs)
 
             iteration += 1
 
         # Write outputs
-        print("Outputs may be written now.")
 
     def fit_repair(self, **kwargs):
         r"""Method to correct spectra for wavelength solution errors and other issues.
@@ -125,4 +130,19 @@ class spectrum(object):
         To be implemented by subclasses.
         """
         pass
+
+    def line_update(self, **kwargs):
+        r"""Method to update current line model based on line profile parameters.
+
+        """
+        position_error = kwargs.pop("position_error", 5.0)
+        max_sigma = kwargs.pop("max_sigma", 100.0)
+        max_flux = kwargs.pop("max_flux", 2.5)
+
+        self.lines = np.copy(self.continuum)
+        for line in self.L:
+            start = np.searchsorted(self.x, line.x0 - 100.0, side='left')
+            end   = np.searchsorted(self.x, line.x0 + 100.0, side='right')
+            for dx in range(start, end):
+                self.lines[dx] = self.lines[dx] + self.profile.f(self.x[dx], line.Q)
 
