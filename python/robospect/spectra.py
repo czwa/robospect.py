@@ -62,10 +62,10 @@ class spectrum(object):
         max_iteration = kwargs.setdefault('max_iteration', 1)
 
         while iteration < max_iteration:
-            self.fit_detection(**kwargs)
-
             self.fit_continuum(**kwargs)
             self.fit_error(**kwargs)
+
+            self.fit_detection(**kwargs)
 
             self.fit_initial(**kwargs)
             self.line_update(**kwargs)

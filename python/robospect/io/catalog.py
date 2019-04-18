@@ -18,39 +18,57 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+import sys
+import contextlib
 import numpy as np
 from robospect import spectra
 from robospect.lines import line, sortLines
 
-__all__ = ['write_ascii_catalog', 'write_fits_catalog'] # 'write_sqlite_catalog', 'write_json_catalog']
+__all__ = ['write_ascii_catalog']
+#, 'write_fits_catalog']
+# 'write_sqlite_catalog', 'write_json_catalog']
+
+@contextlib.contextmanager
+def smart_open(filename=None):
+    if filename is not None:
+        f = open(filename, "w")
+    else:
+        f = sys.stdout
+
+    try:
+        yield f
+    finally:
+        if f is not sys.stdout:
+            f.close()
+
 
 def _eqw(F):
     return -1000.0 * F
 
+
 def write_ascii_catalog(filename, lines):
     """Write list of lines to ascii format
     """
-    if filename is None:
-        raise RuntimeError("No output catalog file specified")
     if lines is None:
         raise RuntimeError("No lines specified to write")
     np.set_printoptions(precision=4, suppress=True)
-    with open(filename, "w") as f:
+    with smart_open(filename) as f:
         f.write ("## Robospect line catalog\n")
         f.write ("## Flags:\n")
         f.write ("## Units\n")
         f.write ("## Headers\n")
 
-        with np.printoptions(formatter={'float': '{: 0.6f}'.format}):
-            for L in lines:
-                if len(L.dQ) < 2:
-                    L.dQ = 0.1 * L.Q
-                    L.flags = L.flags | 0x8000
+        # This is not a context manager, as that only exists in np 1.16?
+        np.set_printoptions(formatter={'float': '{: 0.6f}'.format})
+        for L in lines:
+            if len(L.dQ) < 2:
+                L.dQ = 0.1 * L.Q
+                L.flags = L.flags | 0x8000
 
-                f.write ("%.4f %s   %s   %s       %f   %f   %f 0x%x   %d  %s\n" %
-                         (L.x0, L.Q, L.dQ, L.pQ,
-                          _eqw(L.Q[2]), _eqw(L.dQ[2]),
-                          L.chi, L.flags, L.blend, L.comment))
+            f.write ("%.4f %s   %s   %s       %f   %f   %f 0x%x   %d  %s\n" %
+                     (L.x0, L.Q, L.dQ, L.pQ,
+                      _eqw(L.Q[2]), _eqw(L.dQ[2]),
+                      L.chi, L.flags, L.blend, L.comment))
 
 
 try:

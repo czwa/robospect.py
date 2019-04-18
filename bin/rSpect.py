@@ -20,15 +20,15 @@
 
 import sys
 import robospect as RS
-print(dir(RS))
 
 def main(args=None):
     if args is None:
-        args = sys.argv[1:]
-    config  = RS.config.Config(sys.argv)
-    spectra = config.read_spectra()
-    results = spectra.run_fit()
-    config.write_results(results)
+        args = sys.argv
+    config  = RS.Config(args)
+    print(dir(config))
+    spectra = config.read_spectrum()
+    results = spectra.fit()
+    config.write_results(spectra)
 
 if __name__ == "__main__":
     main()

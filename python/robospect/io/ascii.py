@@ -78,6 +78,8 @@ def read_ascii_spectrum(filename, spectrum=None):
 
     Raises
     ------
+    RuntimeError
+       Raised if no filename is supplied.
     IndexError
        Raised if a line of the input file does not contain two entries
        (wavelength and flux).
@@ -94,6 +96,8 @@ def read_ascii_spectrum(filename, spectrum=None):
     """
 
     index = 0
+    if filename is None:
+        raise RuntimeError("No spectrum filename specified.")
     f = open(filename, "r")
     x = []
     y = []

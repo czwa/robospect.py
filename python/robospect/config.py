@@ -40,7 +40,7 @@ class Config:
 
     def __init__(self, *args, **kwargs):
         # Internal debug assistance things
-        self.command_line = " ".join(args)
+        self.command_line = " ".join(*args)
         self.version = "dev-201903"
         print("## %s\n## %s" % (self.command_line, self.version))
         # Pack models into dict for access later
@@ -80,6 +80,7 @@ class Config:
         fittingArgs = self.arg_dict["fitting"]
         self.spectrum_file = fittingArgs.setdefault("spectrum_file", None)
         self.line_list = fittingArgs.setdefault("line_list", None)
+        self.path_base = fittingArgs.setdefault("path_base", None)
         self.max_iterations = fittingArgs.setdefault("max_iterations", 1)
         self.tolerance = fittingArgs.setdefault("tolerance", 1e-3)
         self.output = fittingArgs.setdefault("output", "/tmp/rs")
@@ -149,6 +150,18 @@ class Config:
             S.L = io.read_ascii_linelist(self.line_list, lines=None)
         print("## %s" % (dir(S)))
         return S
+
+    def write_results(self, spectrum):
+        if spectrum is None:
+            raise RuntimeError("No spectrum supplied for writing.")
+        if self.path_base is None:
+            outfile = None
+        else:
+            if self.iteration < self.max_iterations:
+                outfile = ("%s.iter%d.robolines" % (self.path_base, self.iteration))
+            else:
+                outfile = ("%s.robolines" % (self.path_base))
+        io.write_ascii_catalog(outfile, spectrum.L)
 
     def construct_spectra_class(self, *args, **kwargs):
         r"""Construct the spectra class.
