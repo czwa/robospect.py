@@ -20,9 +20,9 @@
 
 import argparse
 
-from robospect import spectra
-from robospect import models
-from robospect import io
+from . import spectra
+from . import models
+from . import io
 
 __all__ = ['Config']
 
