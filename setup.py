@@ -21,7 +21,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="robospect",
-    version="0.dev201903",
+    version="0.dev201904",
     author="Christopher Z Waters & Julie Hollek",
     author_email="czw@princeton.edu",
     package_dir={'':'python'},
