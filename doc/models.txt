@@ -35,7 +35,7 @@ Deblend:
         null
         nlls
 Detection:
-        naive
+        naive N-sigma peak finding
 Repair:
         radial velocity
         linear wavelength offset

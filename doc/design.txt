@@ -1,14 +1,19 @@
-2019-01-16 CZW:
+2019-04-18 CZW:
 
 After doing the initial configuration and coding, my current thought
-is that the `robospect.py` program flow is as follows:
+is that the `rSpect.py` program flow is as follows:
 
-C = Config(sys.argv)  # parse argument list
+C = Config(sys.argv)  # parse argument list:
+    		      # This currently needs:
+		      # rSpect.py --fitting spectrum_file ./input.spect
+		      # I like the config parsing parameters into dicts for each
+		      # fit component, but this is complicated and unweildy on the
+		      # command line.  I'll have to think more about this.
 S = C.read_spectra()  # C holds the filename, so this constructs an appropriate
     		      # Spectra class with the right models to use, and then loads
 		      # the data.  Perhaps S can be optionally a list, to allow for
 		      # multi-order data to be read easily?
-R = S.run_fit()       # Do all fits.  S should have inherited all appropriate config
+S.fit()               # Do all fits.  S should have inherited all appropriate config
     		      # information (into the models as appropriate), so this just
 		      # sits and runs.  I do not have a good idea of what R looks
 		      # like yet.  If there's a clear way to parallelize things, this
@@ -28,4 +33,7 @@ L.write_science()     # first idea was to do simple classifications, but then th
 Each of these can be done in a notebook to allow an interactive check
 on things, but I haven't clearly thought that through yet.  It should
 largely be calling methods from the main classes, though.
+
+The command line script now appears to be functional, so interactive
+running is no longer the only option.
 
