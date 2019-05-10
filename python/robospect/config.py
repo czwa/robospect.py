@@ -24,15 +24,22 @@ from . import spectra
 from . import models
 from . import io
 
-__all__ = ['Config']
+__all__ = ['Config', 'VERSION']
 
+VERSION = 'dev-201905'
 
 class Config:
     r"""Configuration handler for ROBOSPECT.
 
-    The current list of parameters are based on the C version, and are
-    not guaranteed to be implemented on any dev- version of the code.
+    This class is designed to handle three main tasks:
 
+        1) Read the configuration from either a list of args (assumed
+           to be command line arguments), or by directly setting the
+           configuration dictionaries from kwargs.
+        2) Construct a valid Spectra object based on the model names
+           for each phase (or from the defaults).
+        3) Handle simple IO to read an input spectra and write output
+           results.
     """
     model_phases = ['repair', 'detection', 'noise', 'continuum',
                     'initial', 'line', 'deblend']
@@ -40,22 +47,24 @@ class Config:
 
     def __init__(self, *args, **kwargs):
         # Internal debug assistance things
-        self.command_line = " ".join(*args)
-        self.version = "dev-201903"
+        if len(args) > 0:
+            self.command_line = " ".join(*args)
+        else:
+            self.command_line = ""
+        self.version = VERSION
         print("## %s\n## %s" % (self.command_line, self.version))
+
         # Pack models into dict for access later
         for rsModel in (dir(models)):
             for modelPhase in self.model_phases:
                 if rsModel.startswith(modelPhase):
-#                    print("%s %s %s %s" % (rsModel, modelPhase, "", ""))
-#                    model = getattr(models, rsModel)
                     model = getattr(models, rsModel)
                     modelName = model.modelName
-                    self.rs_models.setdefault(modelPhase, dict()).setdefault(modelName, model)
+                    self.rs_models.setdefault(modelPhase,
+                                              dict()).setdefault(modelName, model)
 
-        self.arg_dict = self._parse(*args)
-        print("## Arg dict: %s" % (self.arg_dict))
-        print("## Model dict: %s" % (self.rs_models))
+        # Parse command line/input configuration dicts to generate new conf parameters.
+        self.arg_dict = self._parse(*args, **kwargs)
 
         # Model selection setting
         for modelPhase in self.model_phases:
@@ -63,7 +72,8 @@ class Config:
             if modelName is None:
                 setattr(self, f"{modelPhase}_model", None)
             else:
-                setattr(self, f"{modelPhase}_model", self.rs_models[modelPhase][modelName])
+                setattr(self, f"{modelPhase}_model",
+                        self.rs_models[modelPhase][modelName])
 
         # This almost certainly needs to be fixed and updated.
         # Set defaults
@@ -88,20 +98,17 @@ class Config:
         self.log = fittingArgs.setdefault("log", "/tmp/rs.log")
 
         self.iteration = 0
-        print("## Self: %s" % (dir(self)))
-        # Directly parse command line here?
-        # C = Config(sys.argv) => returns populated config
-        # S = C.read_spectra() => returns correct class with data
-        # R = S.run_fit()      => returns results
-        # C.write_results(R)   => does output IO?
 
-    def _parse(self, *args):
+    def _parse(self, *args, **kwargs):
         """Parse command line options into appropriate categories.
 
         Parameters
         ----------
         args : `List` of `str`
             List of command line arguments to parse
+        kwargs : `Dict` of `Dicts`
+            Pre-defined configuration dicts.  These are overridden
+            by the `args`.
 
         Returns
         -------
@@ -122,22 +129,100 @@ class Config:
         each model can be more arbitrary in the acceptable parameters.
         """
         parser = argparse.ArgumentParser()
-        parser.add_argument('-R', "--repair", nargs=2, action='append')
-        parser.add_argument('-D', "--detection", nargs=2, action='append')
-        parser.add_argument('-N', "--noise", nargs=2, action='append')
-        parser.add_argument('-C', "--continuum", nargs=2, action='append')
-        parser.add_argument('-I', "--initial", nargs=2, action='append')
-        parser.add_argument('-L', "--line", nargs=2, action='append')
-        parser.add_argument('-B', "--deblend", nargs=2, action='append')
-        parser.add_argument('-F', "--fitting", nargs=2, action='append')
+        parser.add_argument('-R', "--repair", nargs=2, action='append',
+                            help="Conf values for spectrum repair.")
+        parser.add_argument('-D', "--detection", nargs=2, action='append',
+                            help="Conf values for line detection.")
+        parser.add_argument('-N', "--noise", nargs=2, action='append',
+                            help="Conf values for spectrum noise modeling.")
+        parser.add_argument('-C', "--continuum", nargs=2, action='append',
+                            help="Conf values for spectrum continuum modeling.")
+        parser.add_argument('-I', "--initial", nargs=2, action='append',
+                            help="Conf values for initial line fitting (pre-fitting).")
+        parser.add_argument('-L', "--line", nargs=2, action='append',
+                            help="Conf values for line modeling.")
+        parser.add_argument('-B', "--deblend", nargs=2, action='append',
+                            help="Conf values for line deblending.")
+        parser.add_argument('-F', "--fitting", nargs=2, action='append',
+                            help="General conf values for fitting.")
         parsed, unparsed = parser.parse_known_args(*args)
 
+        # Set defaults from kwargs
         arguments = dict()
+        if kwargs is not None:
+            for kw in kwargs.keys():
+                arguments[kw] = dict(kwargs[kw])
+
         for argClass in vars(parsed).keys():
-            if vars(parsed)[argClass] is None:
+            # Create dicts if they do not exist.
+            if argClass not in arguments.keys():
                 arguments[argClass] = dict()
-            else:
+
+            # Pack data from the parsed list.
+            if arguments[argClass].keys() is None:
                 arguments[argClass] = {t[0]: t[1] for t in vars(parsed)[argClass]}
+            elif vars(parsed)[argClass] is not None:
+                for t in vars(parsed)[argClass]:
+                    arguments[argClass][t[0]] = t[1]
+
+        backwardsCompatParser = argparse.ArgumentParser()
+        backwardsCompatParser.add_argument('-V', "--continuum_box", nargs=1,
+                                           default=50.0, type=float,
+                                           help="Width (in AA) for continuum/noise box")
+        backwardsCompatParser.add_argument('-i', "--iterations", nargs=1,
+                                           default=1, type=int,
+                                           help="Number of iterations for fit.")
+        backwardsCompatParser.add_argument('-T', "--tolerance", nargs=1,
+                                           default=1e-3, type=float,
+                                           help="Fitting tolerance to use.")
+        backwardsCompatParser.add_argument("--line_list", nargs=1,
+                                           help="List of lines to always attempt fits.")
+        backwardsCompatParser.add_argument('-P', "--path_base", nargs=1,
+                                           help="Output file path and file prefix.")
+        backwardsCompatParser.add_argument('-O', "--output", nargs=1,
+                                           help="Output filename.")
+        # backwardsCompatParser.add_argument('-I', "--save_temp", )
+        # backwardsCompatParser.add_argument('-A', "--plot_all", )
+        # backwardsCompatParser.add_argument('', "--flux_calibrated", )
+        #        backwardsCompatParser.add_argument('-v', "--verbose", nargs=1)
+        # backwardsCompatParser.add_argument('-r', "--deblend_radius", nargs=1)
+        # backwardsCompatParser.add_argument('', "--deblend_ratio", nargs=1)
+        # backwardsCompatParser.add_argument('-d', "--deblend_iterations", nargs=1)
+        # backwardsCompatParser.add_argument('', "--naive_find_lines", )
+        # backwardsCompatParser.add_argument('-f', "--find_sigma", nargs=1)
+        # backwardsCompatParser.add_argument('', "--wavelength_min_error", nargs=1)
+        # backwardsCompatParser.add_argument('', "--wavelength_max_error", nargs=1)
+        # backwardsCompatParser.add_argument('', "--wavelength_limit", nargs=1)
+        # backwardsCompatParser.add_argument('', "--radial_velocity", nargs=1)
+        # backwardsCompatParser.add_argument('', "--measure_radial_velocity", nargs=1)
+        # backwardsCompatParser.add_argument('', "--radial_velocity_range", nargs=1)
+        # backwardsCompatParser.add_argument('', "--radial_velocity_error", nargs=1)
+        # backwardsCompatParser.add_argument('', "--radial_velocity_step", nargs=1)
+        # backwardsCompatParser.add_argument('', "--radial_velocity_sigma", nargs=1)
+        # backwardsCompatParser.add_argument('', "--loosen", )
+        # backwardsCompatParser.add_argument('', "--strict_center", )
+        # backwardsCompatParser.add_argument('', "--strict_width", )
+        # backwardsCompatParser.add_argument('', "--strict_flux", )
+        # backwardsCompatParser.add_argument('', "--fits_row", nargs=1)
+        BCparsed, unparsed = backwardsCompatParser.parse_known_args(unparsed)
+        if "path_base" in vars(BCparsed).keys():
+            arguments['fitting']['path_base'] = BCparsed.path_base
+        if "continuum_box" in vars(BCparsed).keys():
+            arguments['continuum']['box_size'] = BCparsed.continuum_box
+        if "iterations" in vars(BCparsed).keys():
+            arguments['fitting']['max_iterations'] = BCparsed.iterations
+        if "tolerance" in vars(BCparsed).keys():
+            arguments['fitting']['tolerance'] = BCparsed.tolerance
+        if "line_list" in vars(BCparsed).keys():
+            arguments['fitting']['line_list'] = BCparsed.line_list
+        if "output" in vars(BCparsed).keys():
+            arguments['fitting']['output'] = BCparsed.output
+
+        if len(unparsed) > 0:
+            arguments['fitting']['spectrum_file'] = unparsed.pop(0)
+        if len(unparsed) > 0:
+            print("Unparsed arguments! %s" % (unparsed))
+            print("INFO: valid arguments: %s" % (arguments))
 
         return arguments
 
@@ -172,7 +257,6 @@ class Config:
 
         Notes
         -----
-
         I would like this to be able to append the correct entries to
         the inheritance list by name, instead of relying on the
         sub-class being set in the configuration class.

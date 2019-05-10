@@ -25,7 +25,6 @@ def main(args=None):
     if args is None:
         args = sys.argv
     config  = RS.Config(args)
-    print(dir(config))
     spectra = config.read_spectrum()
     results = spectra.fit()
     config.write_results(spectra)
