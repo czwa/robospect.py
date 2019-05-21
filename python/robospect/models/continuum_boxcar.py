@@ -33,7 +33,7 @@ class continuum_boxcar(spectra.spectrum):
         self._configContinuum(**config)
 
     def _configContinuum(self, **kwargs):
-        self.box_size = kwargs.pop('box_size', 20.0)
+        self.box_size = kwargs.pop('box_size', 40.0)
 
     def fit_continuum(self, **kwargs):
         self._configContinuum(**kwargs)
