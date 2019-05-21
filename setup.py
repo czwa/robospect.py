@@ -32,6 +32,10 @@ setup(
     description="Automated equivalent-width measurement for astronomical spectra",
     long_description="",
     python_requires=">3.6.5",
+    test_suite="tests",
+    setup_requires="pytest-runner",
+    tests_require="pytest",
+#    tests_require="pytest-3",
     install_requires=[
         'numpy',
         'scipy'
