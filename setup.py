@@ -38,7 +38,8 @@ setup(
 #    tests_require="pytest-3",
     install_requires=[
         'numpy',
-        'scipy'
+        'scipy',
+        'matplotlib'
     ],
 )
 
