@@ -126,7 +126,7 @@ def spect_compare(plot_key, path_base, *args):
     for p1, p2, name in zip([file_l, file_e, file_c],
                             [current_l, current_e, current_c],
                             ["model", "errors", "continuum"]):
-        ymin, ymax = np.percentile(p1, [1.0, 99.0])
+        ymin, ymax = np.percentile(p1, [0.0, 100.0])
         plt.ylim(ymin - 0.1, ymax + 0.1)
         plt.title(f"{plot_key}")
         plt.ylabel(f"{name}")
@@ -139,7 +139,7 @@ def spect_compare(plot_key, path_base, *args):
     outF = open(f"/tmp/{plot_key}.dat", "w")
     for compare, name in zip([diff_l, diff_e, diff_c],
                              ["model", "errors", "continuum"]):
-        ymin, ymax = np.percentile(compare, [1.0, 99.0])
+        ymin, ymax = np.percentile(compare, [0.0, 100.0])
         plt.ylim(ymin - 0.1, ymax + 0.1)
         plt.title(f"{plot_key}")
         plt.ylabel(f"diff {name}")
@@ -157,12 +157,15 @@ def spect_compare(plot_key, path_base, *args):
     lines_compare(plot_key, True, file_Lines, current_Lines)
 
 
-def test_blue():
-    spect_compare("blue", f"{TestDir}/v2.14run/blue.out_iter1")
+# def test_blue():
+#    spect_compare("blue", f"{TestDir}/v2.14run/blue.out_iter1")
 
 def test_red():
-    spect_compare("red", f"{TestDir}/v2.14run/red.out_iter1")
+    spect_compare("red", f"{TestDir}/v2.14run/red.limited")
 
 
 if __name__ == "__main__":
+    test_red()
     unittest.main()
+
+
