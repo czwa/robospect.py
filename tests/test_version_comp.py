@@ -50,6 +50,8 @@ def run_current(path_base, *args):
     C = RS.config.Config(rs_args)
     S = C.read_spectrum()
     S.fit()
+    C.path_base = "/tmp/czw_test"
+    C.write_results(spectrum=S)
     return S.x, S.y, S.error, S.continuum, S.lines, S.L
 
 def lines_compare(plot_key, pre_key, l1, l2):
@@ -157,11 +159,11 @@ def spect_compare(plot_key, path_base, *args):
     lines_compare(plot_key, True, file_Lines, current_Lines)
 
 
-# def test_blue():
-#    spect_compare("blue", f"{TestDir}/v2.14run/blue.out_iter1")
+def test_blue():
+   spect_compare("blue", f"{TestDir}/v2.14run/blue.out_iter1")
 
 def test_red():
-    spect_compare("red", f"{TestDir}/v2.14run/red.limited")
+    spect_compare("red", f"{TestDir}/v2.14run/red.out_iter1")
 
 
 if __name__ == "__main__":

@@ -241,12 +241,16 @@ class Config:
             raise RuntimeError("No spectrum supplied for writing.")
         if self.path_base is None:
             outfile = None
+            outfile2 = None
         else:
             if self.iteration < self.max_iterations:
                 outfile = ("%s.iter%d.robolines" % (self.path_base, self.iteration))
+                outfile2 = ("%s.iter%d.robospect" % (self.path_base, self.iteration))
             else:
                 outfile = ("%s.robolines" % (self.path_base))
+                outfile2 = ("%s.robospect" % (self.path_base))
         io.write_ascii_catalog(outfile, spectrum.L)
+        io.write_ascii_spectrum(outfile2, spectrum)
 
     def construct_spectra_class(self, *args, **kwargs):
         r"""Construct the spectra class.

@@ -42,7 +42,6 @@ class line_gauss_guess(spectra.spectrum):
         V = 0.0
         W = 0.0
         for vX, vY in zip(X, Y):
-            print("     >> %f %f & %f %f" % (vX, vY, V, W))
             V += vX * vY
             W += vY
         if W == 0.0:
@@ -86,7 +85,7 @@ class line_gauss_guess(spectra.spectrum):
             #            center= np.searchsorted(self.x, m, side='left') - 1
             F = temp[center]
 
-            print("%f %f [%f %f %f] %d" % (line.x0, m, F, temp[center - 1], temp[center + 1], center))
+#            print("%f %f [%f %f %f] %d" % (line.x0, m, F, temp[center - 1], temp[center + 1], center))
             ## CZW: ok?
 
             ## This is truncating the two sides unevenly, I think.  This leads to sigma differences, which are the issue.
@@ -157,11 +156,13 @@ class line_gauss_guess(spectra.spectrum):
                 eta = -18.7118 + 11.9942 * peakiness
             if eta < 0.0:
                 eta = 0.0
+
             np.append(line.Q, eta)
+
 
             line.pQ = line.Q
             #            print("    %s" % line.Q)
             for dx in range(start, end):
                 self.lines[dx] = self.lines[dx] - P.eval(self.x[dx], line.Q)
-            print(line.pQ)
-            print(center, F, temp[center], self.lines[center] - self.continuum[center])
+#            print(line.pQ)
+#            print(center, F, temp[center], self.lines[center] - self.continuum[center])
