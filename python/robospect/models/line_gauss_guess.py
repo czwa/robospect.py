@@ -142,8 +142,16 @@ class line_gauss_guess(spectra.spectrum):
             # flux
             ### CZW: I think this correction fixes the sigma factor commented out.
             # Attempt to correct flux for peak-vs-sample peak offset.
+            if np.abs(m - self.x[center]) > abs(self.x[center] - self.x[center + 1]):
+                m = self.x[center]
+            if np.abs(sigma) <= 1e-6:
+                sigma = 1e-6
+
             F = F * np.exp(0.5 * ((m - self.x[center])/sigma)**2)
             F = -1.0 * F # * (sigma * np.sqrt(2.0 * np.pi))
+            if abs(F) > 1e3:
+                F = temp[center]
+
             # eta
             line.Q = np.array([m, sigma, F])
             #            if self.nparm >= 4:

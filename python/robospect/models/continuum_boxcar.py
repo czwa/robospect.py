@@ -42,12 +42,16 @@ class continuum_boxcar(spectra.spectrum):
         for idx, w in enumerate(self.x):
             start = np.searchsorted(self.x, w - self.box_size / 2.0, side='left')
             end = np.searchsorted(self.x, w + self.box_size / 2.0, side='right')
+            if start < 0:
+                start = 0
+            if end > len(self.x):
+                end = len(self.x)
 
             self.continuum[idx] = np.median(temp[start:end])
 
             noise = temp[start:end]
             noise = abs(noise - self.continuum[idx])
-            self.error[idx] = 1.4826 * np.median(noise)
+            self.error[idx] = 1.4826 * np.median(noise) / self.continuum[idx]
 
     def fit_error(self, **kwargs):
         pass
