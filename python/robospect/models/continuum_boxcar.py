@@ -34,6 +34,7 @@ class continuum_boxcar(spectra.spectrum):
 
     def _configContinuum(self, **kwargs):
         self.box_size = kwargs.pop('box_size', 40.0)
+        self.continuum_normalized = kwargs.pop('continuum_normalized', True)
 
     def fit_continuum(self, **kwargs):
         self._configContinuum(**kwargs)
@@ -44,14 +45,19 @@ class continuum_boxcar(spectra.spectrum):
             end = np.searchsorted(self.x, w + self.box_size / 2.0, side='right')
             if start < 0:
                 start = 0
-            if end > len(self.x):
-                end = len(self.x)
+            if end > len(self.x) - 1:
+                end = len(self.x) - 1
 
             self.continuum[idx] = np.median(temp[start:end])
 
             noise = temp[start:end]
             noise = abs(noise - self.continuum[idx])
-            self.error[idx] = 1.4826 * np.median(noise) / self.continuum[idx]
+
+            if self.continuum_normalized is True:
+                # This should be correct for continuum normalized data.
+                self.error[idx] = 1.4826 * np.median(noise) / self.continuum[idx]
+            else:
+                self.error[idx] = 1.4826 * np.median(noise)
 
     def fit_error(self, **kwargs):
         pass
