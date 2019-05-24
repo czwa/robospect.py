@@ -159,11 +159,11 @@ def spect_compare(plot_key, path_base, *args):
     lines_compare(plot_key, True, file_Lines, current_Lines)
 
 
-def test_blue():
-   spect_compare("blue", f"{TestDir}/v2.14run/blue.out_iter1")
+#def test_blue():
+#   spect_compare("blue", f"{TestDir}/v2.14run/blue.out_iter1")
 
 def test_red():
-    spect_compare("red", f"{TestDir}/v2.14run/red.out_iter1")
+    spect_compare("red", f"{TestDir}/v2.14run/red.limited")
 
 
 if __name__ == "__main__":
