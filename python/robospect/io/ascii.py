@@ -19,10 +19,11 @@
 #
 
 import numpy as np
-from robospect import spectra
-from robospect import lines, sortLines
+import robospect as RS
+
 
 __all__ = ['read_ascii_spectrum', 'read_ascii_linelist', 'write_ascii_spectrum']
+
 
 def read_ascii_linelist(filename, lines=None):
     """Read list of lines to fit stored in ascii format.
@@ -44,19 +45,21 @@ def read_ascii_linelist(filename, lines=None):
     if filename is None:
         raise RuntimeError("No line list supplied to read.")
 
-    f = open(filename, "r")
-    for l in f:
-        if not l.startswith("#"):
-            tokens = l.split()
-            Ntok = len(tokens)
-            if Ntok == 1:
-                new_line = line(float(tokens[0]))
-            else:
-                new_line = line(float(tokens[0]),
-                                comment=" ".join([str(x) for x in tokens[1:]]))
-            lines.append(new_line)
+    with open(filename, "r") as f:
+        for l in f:
+            if not l.startswith("#"):
+                tokens = l.split()
+                Ntok = len(tokens)
+                if Ntok < 1:
+                    continue
+                elif Ntok == 1:
+                    new_line = RS.line(float(tokens[0]))
+                else:
+                    new_line = RS.line(float(tokens[0]),
+                                       comment=" ".join([str(x) for x in tokens[1:]]))
+                lines.append(new_line)
 
-    lines.sort(key=sortLines)
+    lines.sort(key=RS.sortLines)
 
     return(lines)
 
@@ -98,30 +101,31 @@ def read_ascii_spectrum(filename, spectrum=None):
     index = 0
     if filename is None:
         raise RuntimeError("No spectrum filename specified.")
-    f = open(filename, "r")
+
     x = []
     y = []
     e0 = []
     comment = []
-    for l in f:
-        if not l.startswith("#"):
-            tokens = l.split()
-            Ntok = len(tokens)
-            if Ntok >= 2:
-                x.append(float(tokens[0]))
-                y.append(float(tokens[1]))
-            elif Ntok == 3:
-                e0.append(float(tokens[2]))
-            elif Ntok > 3:
-                e0.append(float(tokens[2]))
-                comment.append(" ".join([str(x) for x in tokens[3:]]))
-            else:
-                raise IndexError("Could not find wavelength/flux pair on line %d of file %s" %
-                                 (index, filename))
+    with open(filename, "r") as f:
+        for l in f:
+            if not l.startswith("#"):
+                tokens = l.split()
+                Ntok = len(tokens)
+                if Ntok >= 2:
+                    x.append(float(tokens[0]))
+                    y.append(float(tokens[1]))
+                elif Ntok == 3:
+                    e0.append(float(tokens[2]))
+                elif Ntok > 3:
+                    e0.append(float(tokens[2]))
+                    comment.append(" ".join([str(x) for x in tokens[3:]]))
+                else:
+                    raise IndexError("Could not find wavelength/flux pair on line %d of file %s" %
+                                     (index, filename))
         index += 1
 
     if spectrum is None:
-        spectrum = spectra.spectrum()
+        spectrum = RS.spectrum()
 
     spectrum.x = np.array(x)
     spectrum.y = np.array(y)
@@ -146,11 +150,11 @@ def write_ascii_spectrum(filename, spectrum=None):
     print(len(spectrum.x))
     f.write("####### %d\n" % (len(spectrum.x)))
     for x, y, c, e, l, l2 in zip(spectrum.x,
-                                     spectrum.y,
-                                     spectrum.continuum,
-                                     spectrum.error,
-                                     spectrum.lines,
-                                     spectrum.alternate):
+                                 spectrum.y,
+                                 spectrum.continuum,
+                                 spectrum.error,
+                                 spectrum.lines,
+                                 spectrum.alternate):
         f.write("%f %f %f %f %f %f %f\n" %
                 (x, y, 0.0, c, e, l, l2))
     f.close()
