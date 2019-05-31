@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 #
 # This file is part of robospect.py.
 #
@@ -24,6 +25,7 @@ import robospect as RS
 def main(args=None):
     if args is None:
         args = sys.argv
+        args.pop(0)  ## Remove script name
     config  = RS.Config(args)
     spectra = config.read_spectrum()
     results = spectra.fit()
