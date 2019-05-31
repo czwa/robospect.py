@@ -98,4 +98,3 @@ class line_nlls(spectra.spectrum):
                 # line.flags |= self.resultFlags(optimizeResult.status, optimizeResult.success)
             except TypeError:
                 line.flags = 0xff
-

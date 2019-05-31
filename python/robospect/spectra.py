@@ -70,9 +70,18 @@ class spectrum(object):
         iteration = kwargs.setdefault('iteration', self.iteration)
         max_iteration = kwargs.setdefault('max_iteration', self.max_iteration)
 
+        if len(self.L) > 0:
+            self.fit_continuum(**kwargs)
+            self.fit_error(**kwargs)
+            self.fit_initial(**kwargs)
+            self.line_update(**kwargs)
+
         while iteration < max_iteration:
             print("## Iteration %d / %d   %d lines" %
                   (iteration, max_iteration, len(self.lines)))
+
+            for l in [l for l in self.L if l.x0 > 6642 and l.x0 < 6645]:
+                print(l)
             self.fit_continuum(**kwargs)
             self.fit_error(**kwargs)
 
@@ -80,9 +89,13 @@ class spectrum(object):
 
             self.fit_initial(**kwargs)
             self.line_update(**kwargs)
+            for l in [l for l in self.L if l.x0 > 6642 and l.x0 < 6645]:
+                print(l)
 
             self.fit_lines(**kwargs)
             self.line_update(**kwargs)
+            for l in [l for l in self.L if l.x0 > 6642 and l.x0 < 6645]:
+                print(l)
 
             self.fit_deblend(**kwargs)
             self.fit_repair(**kwargs)
