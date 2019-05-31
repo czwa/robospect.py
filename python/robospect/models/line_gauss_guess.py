@@ -45,7 +45,8 @@ class line_gauss_guess(spectra.spectrum):
             V += vX * vY
             W += vY
         if W == 0.0:
-            raise RuntimeError("line_gauss_guess.centroid: division by zero")
+            return None
+            #            raise RuntimeError("line_gauss_guess.centroid: division by zero")
         return V/W
 
     def _interpY(self, X, Y, index, value, side='left'):
@@ -81,6 +82,8 @@ class line_gauss_guess(spectra.spectrum):
             centroidRange = 1
             m = self._centroid(self.x[center - centroidRange:center + centroidRange + 1],
                                temp[center - centroidRange:center + centroidRange + 1])
+            if m is None:
+                m = self.x[center]
             # print("%f %f %f %d" % (line.x0, m, 1.0, center))
             #            center= np.searchsorted(self.x, m, side='left') - 1
             F = temp[center]
@@ -145,6 +148,8 @@ class line_gauss_guess(spectra.spectrum):
             if np.abs(m - self.x[center]) > abs(self.x[center] - self.x[center + 1]):
                 m = self.x[center]
             if np.abs(sigma) <= 1e-6:
+                sigma = 1e-6
+            if np.abs(sigma) > 100:
                 sigma = 1e-6
 
             F = F * np.exp(0.5 * ((m - self.x[center])/sigma)**2)
