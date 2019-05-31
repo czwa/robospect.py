@@ -72,6 +72,9 @@ class line():
         if Q is not None:
             self.Q = Q
 
+    def __repr__(self):
+        return "Line(%.2f %s %s 0x%x ##%s)" % (self.x0, self.pQ, self.Q, self.flags, self.comment)
+
     def f(self, x):
         r"""Evaluate the function of this line for the input wavelength.
 
