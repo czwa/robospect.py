@@ -69,8 +69,7 @@ class spectrum(object):
         """
         iteration = kwargs.setdefault('iteration', self.iteration)
         max_iteration = kwargs.setdefault('max_iteration', self.max_iteration)
-        import pdb
-        pdb.set_trace()
+
         while iteration < max_iteration:
             print("## Iteration %d / %d   %d lines" %
                   (iteration, max_iteration, len(self.lines)))
