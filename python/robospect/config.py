@@ -282,9 +282,9 @@ class Config:
         for i in inheritance_list:
             print(i)
         # print(inheritance_list)
+
         class Spectra(*inheritance):
             def __init__(self, *args, **kwargs):
-                print("Spectra init")
                 super().__init__(*args, **kwargs)
 
             def copy_data(self, spectrum):
