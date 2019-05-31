@@ -2,6 +2,7 @@ import unittest
 import os
 import hashlib
 import pickle
+import numpy as np
 
 import robospect as RS
 
@@ -41,7 +42,7 @@ class Test_IO_Methods(unittest.TestCase):
         spectrum = RS.read_ascii_spectrum(f"{TestDir}/data/goodblue.spect")
 
         self.assertEqual(hash_data_structure(spectrum),
-                         "bacd6e9003d7b47e5e0ed57e0cb24f91")
+                         "cb140d8577d90fc7ae06ffbb939fd32b")
 
     def test_write_ascii_spectrum(self):
         pass
@@ -87,16 +88,100 @@ class Test_Spectra(unittest.TestCase):
 
 class Test_Model_Methods(unittest.TestCase):
 
+    def spectrum_sim(self, min_wavelength=4900, max_wavelength = 5000, resolution=0.01,
+                     noise=0.01, lines=None, func=None):
+        C = RS.Config()
+        S = C.construct_spectra_class()
+
+        S.x = np.arange(min_wavelength, max_wavelength, resolution)
+        S.y = np.ones_like(S.x) + np.random.normal(loc=0.0, scale=noise, size=S.x.size)
+        S.e0 = np.zeros_like(S.x)
+
+        S.continuum = np.ones_like(S.x)
+        S.lines = np.zeros_like(S.x)
+        S.alternate = np.zeros_like(S.x)
+        S.error = np.ones_like(S.x)
+
+        S.comment = []
+        S.filename = "SIM"
+
+        if lines is not None and func is not None:
+            for l in lines:
+                S.y += func(S.x, l.Q)
+        C.path_base = "/tmp/czw_utX"
+        C.write_results(S)
+        return S
+
     def test_continuum_boxcar(self):
+        S = self.spectrum_sim()
+
+        S.fit_continuum()
+        z_deviation = (S.y - np.ones_like(S.y)) / S.error
+
+        print(z_deviation)
         pass
+#        self.assertLess(np.nanmean(z_deviation), 1.0)
 
     def test_detection_naive(self):
+        L_truth = []
+        L_truth.append( RS.line(4925.0, 3, Q=np.array([4925.03, 0.05, -.15])) )
+        L_truth.append( RS.line(4935.0, 3, Q=np.array([4935.03, 0.06, -.10])) )
+        L_truth.append( RS.line(4945.0, 3, Q=np.array([4945.03, 0.07, -.17])) )
+        L_truth.append( RS.line(4955.0, 3, Q=np.array([4955.03, 0.08, -.12])) )
+
+        G = RS.profile_shapes.gaussian()
+        S = self.spectrum_sim(lines=L_truth, func=G)
+
+        S.fit_detection()
+        for l in S.L:
+            print(l)
         pass
 
     def test_line_gauss_guess(self):
+        L_truth = []
+        L_truth.append( RS.line(4925.0, 3, Q=np.array([4925.03, 0.05, -.15])) )
+        L_truth.append( RS.line(4935.0, 3, Q=np.array([4935.03, 0.06, -.10])) )
+        L_truth.append( RS.line(4945.0, 3, Q=np.array([4945.03, 0.07, -.17])) )
+        L_truth.append( RS.line(4955.0, 3, Q=np.array([4955.03, 0.08, -.12])) )
+
+        L_init = []
+        L_init.append( RS.line(4925.0, 3) )
+        L_init.append( RS.line(4935.0, 3) )
+        L_init.append( RS.line(4945.0, 3) )
+        L_init.append( RS.line(4955.0, 3) )
+
+        G = RS.profile_shapes.gaussian()
+        S = self.spectrum_sim(lines=L_truth, func=G)
+        S.L = L_init
+        S.fit_initial()
+        S.line_update()
+
+        for l in S.L:
+            print(l)
         pass
 
     def test_line_nlls(self):
+        L_truth = []
+        L_truth.append( RS.line(4925.0, 3, Q=np.array([4925.03, 0.05, -.15])) )
+        L_truth.append( RS.line(4935.0, 3, Q=np.array([4935.03, 0.06, -.10])) )
+        L_truth.append( RS.line(4945.0, 3, Q=np.array([4945.03, 0.07, -.17])) )
+        L_truth.append( RS.line(4955.0, 3, Q=np.array([4955.03, 0.08, -.12])) )
+
+        L_init = []
+        L_init.append( RS.line(4925.0, 3) )
+        L_init.append( RS.line(4935.0, 3) )
+        L_init.append( RS.line(4945.0, 3) )
+        L_init.append( RS.line(4955.0, 3) )
+
+        G = RS.profile_shapes.gaussian()
+        S = self.spectrum_sim(lines=L_truth, func=G)
+        S.L = L_init
+        S.fit_initial()
+        S.line_update()
+        S.fit_lines()
+
+        for l in S.L:
+            print(l)
         pass
 
     def test_noise_boxcar(self):
