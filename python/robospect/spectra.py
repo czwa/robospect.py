@@ -77,8 +77,7 @@ class spectrum(object):
             self.fit_repair(**kwargs)
 
             iteration += 1
-
-        # Write outputs
+            # Write outputs?
 
     def fit_repair(self, **kwargs):
         r"""Method to correct spectra for wavelength solution errors and other issues.

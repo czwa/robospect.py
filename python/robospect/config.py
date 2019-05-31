@@ -166,20 +166,20 @@ class Config:
                     arguments[argClass][t[0]] = t[1]
 
         backwardsCompatParser = argparse.ArgumentParser()
-        backwardsCompatParser.add_argument('-V', "--continuum_box", nargs=1,
+        backwardsCompatParser.add_argument('-V', "--continuum_box",
                                            default=50.0, type=float,
                                            help="Width (in AA) for continuum/noise box")
-        backwardsCompatParser.add_argument('-i', "--iterations", nargs=1,
+        backwardsCompatParser.add_argument('-i', "--iterations",
                                            default=1, type=int,
                                            help="Number of iterations for fit.")
-        backwardsCompatParser.add_argument('-T', "--tolerance", nargs=1,
+        backwardsCompatParser.add_argument('-T', "--tolerance",
                                            default=1e-3, type=float,
                                            help="Fitting tolerance to use.")
-        backwardsCompatParser.add_argument("--line_list", nargs=1,
+        backwardsCompatParser.add_argument("--line_list",
                                            help="List of lines to always attempt fits.")
-        backwardsCompatParser.add_argument('-P', "--path_base", nargs=1,
+        backwardsCompatParser.add_argument('-P', "--path_base",
                                            help="Output file path and file prefix.")
-        backwardsCompatParser.add_argument('-O', "--output", nargs=1,
+        backwardsCompatParser.add_argument('-O', "--output",
                                            help="Output filename.")
         # backwardsCompatParser.add_argument('-I', "--save_temp", )
         # backwardsCompatParser.add_argument('-A', "--plot_all", )
@@ -243,7 +243,7 @@ class Config:
             outfile = None
             outfile2 = None
         else:
-            if self.iteration < self.max_iterations:
+            if self.iteration < self.max_iterations - 1 and False:
                 outfile = ("%s.iter%d.robolines" % (self.path_base, self.iteration))
                 outfile2 = ("%s.iter%d.robospect" % (self.path_base, self.iteration))
             else:

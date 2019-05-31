@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-
+import contextlib
+import sys
 import numpy as np
 import robospect as RS
 
@@ -143,18 +144,31 @@ def read_ascii_spectrum(filename, spectrum=None):
     return spectrum
 
 
+## CZW: This should be in a utilities section
+@contextlib.contextmanager
+def smart_open(filename=None):
+    if filename is not None:
+        f = open(filename, "w")
+    else:
+        f = sys.stdout
+
+    try:
+        yield f
+    finally:
+        if f is not sys.stdout:
+            f.close()
+
+
 def write_ascii_spectrum(filename, spectrum=None):
-    if filename is None:
-        pass
-    f = open(filename, "w")
-    print(len(spectrum.x))
-    f.write("####### %d\n" % (len(spectrum.x)))
-    for x, y, c, e, l, l2 in zip(spectrum.x,
-                                 spectrum.y,
-                                 spectrum.continuum,
-                                 spectrum.error,
-                                 spectrum.lines,
-                                 spectrum.alternate):
-        f.write("%f %f %f %f %f %f %f\n" %
-                (x, y, 0.0, c, e, l, l2))
-    f.close()
+    if spectrum is None:
+        raise RuntimeError("No spectrum specified to print.")
+    with smart_open(filename) as f:
+        f.write("####### %d\n" % (len(spectrum.x)))
+        for x, y, c, e, l, l2 in zip(spectrum.x,
+                                     spectrum.y,
+                                     spectrum.continuum,
+                                     spectrum.error,
+                                     spectrum.lines,
+                                     spectrum.alternate):
+            f.write("%f %f %f %f %f %f %f\n" %
+                    (x, y, 0.0, c, e, l, l2))
