@@ -51,7 +51,7 @@ class line():
     flags = 0xffff
     blend = 0
 
-    def __init__(self, x0, Nparam=None, comment=None, flags=None, blend=None):
+    def __init__(self, x0, Nparam=None, comment=None, flags=None, blend=None, Q=None):
         self.x0 = x0
 
         if Nparam is not None:
@@ -69,6 +69,8 @@ class line():
             self.flags = flags
         if blend is not None:
             self.blend = blend
+        if Q is not None:
+            self.Q = Q
 
     def f(self, x):
         r"""Evaluate the function of this line for the input wavelength.
