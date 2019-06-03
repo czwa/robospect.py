@@ -63,6 +63,9 @@ class profile():
     def __init__(self, **kwargs):
         pass
 
+    def __call__(self, x, Q):
+        return self.eval(x, Q)
+
     def f(self, x, *args, **kwargs):
         pass
 
@@ -111,9 +114,17 @@ class gaussian(profile):
 
         return (f, dfdm, dfds, dfdA)
 
+    def fO(self, x, Q0, Q1, Q2):
+        Q = np.array([Q0, Q1, Q2])
+        return np.array(self.f(x, Q))
+
+    def dfO(self, x, Q0, Q1, Q2):
+        Q = np.array([Q0, Q1, Q2])
+        return np.array(self.df(x, Q))
+
     def eval(self, x, Q):
         (m, s, A) = Q
-        return self.f(x, Q) / (s * np.sqrt(2.0 * np.pi))
+        return self.f(x, Q) # / (s * np.sqrt(2.0 * np.pi))
 
 # https://en.wikipedia.org/wiki/Voigt_profile
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.wofz.html#scipy.special.wofz

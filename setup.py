@@ -21,7 +21,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="robospect",
-    version="0.dev201904",
+    version="0.dev201905",
     author="Christopher Z Waters & Julie Hollek",
     author_email="czw@princeton.edu",
     package_dir={'':'python'},
@@ -32,9 +32,14 @@ setup(
     description="Automated equivalent-width measurement for astronomical spectra",
     long_description="",
     python_requires=">3.6.5",
+    test_suite="tests",
+    setup_requires="pytest-runner",
+    tests_require="pytest",
+#    tests_require="pytest-3",
     install_requires=[
         'numpy',
-        'scipy'
+        'scipy',
+        'matplotlib'
     ],
 )
 

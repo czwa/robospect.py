@@ -20,9 +20,14 @@
 
 __all__ = ['line_gauss_guess',
            'line_nlls',
+           'line_null',
            'detection_naive',
+           'detection_null',
            'continuum_boxcar',
+           'continuum_null',
            'noise_boxcar',
+           'error_null',
+           'initial_null',
            'profile_shapes',
        ]
 
@@ -36,4 +41,5 @@ from .continuum_boxcar import *
 from .noise_boxcar import *
 from .detection_naive import *
 
+from .all_null import *
 

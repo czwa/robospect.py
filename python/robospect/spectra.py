@@ -43,6 +43,15 @@ class spectrum(object):
         self.alternate = np.zeros(len(self.x))
         self.error = np.zeros(len(self.x))
 
+        # Things like general tolerances probably should be here too.
+        fitting_parameters = kwargs.setdefault('fitting', None)
+        if fitting_parameters is not None:
+            self.iteration = fitting_parameters.setdefault('iteration', 0)
+            self.max_iteration = fitting_parameters.setdefault('max_iterations', 1)
+        else:
+            self.iteration = 0
+            self.max_iteration = 1
+
     def max(self):
         if self.x is not None:
             return self.x[-1]
@@ -58,10 +67,19 @@ class spectrum(object):
     def fit(self, **kwargs):
         r"""Method to perform a single fitting iteration.
         """
-        iteration = kwargs.setdefault('iteration', 0)
-        max_iteration = kwargs.setdefault('max_iteration', 1)
+        iteration = kwargs.setdefault('iteration', self.iteration)
+        max_iteration = kwargs.setdefault('max_iteration', self.max_iteration)
+
+        if len(self.L) > 0:
+            self.fit_continuum(**kwargs)
+            self.fit_error(**kwargs)
+            self.fit_initial(**kwargs)
+            self.line_update(**kwargs)
 
         while iteration < max_iteration:
+            print("## Iteration %d / %d   %d lines" %
+                  (iteration, max_iteration, len(self.L)))
+
             self.fit_continuum(**kwargs)
             self.fit_error(**kwargs)
 
@@ -77,8 +95,7 @@ class spectrum(object):
             self.fit_repair(**kwargs)
 
             iteration += 1
-
-        # Write outputs
+            # Write outputs?
 
     def fit_repair(self, **kwargs):
         r"""Method to correct spectra for wavelength solution errors and other issues.
