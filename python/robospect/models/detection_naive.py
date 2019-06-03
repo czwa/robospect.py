@@ -36,6 +36,11 @@ class detection_naive(spectra.spectrum):
     def _configDetection(self, **kwargs):
         self.threshold = kwargs.pop('threshold', 3.0)
 
+    def peak_index_from_wavelength(self, wavelength, SN, search_width=5):
+        index_guess = np.searchsorted(self.x, wavelength, side='left')
+        peak_idx = np.argmax(SN[index_guess - search_width:index_guess + search_width])
+        return peak_idx + index_guess - search_width
+
     def fit_detection(self, **kwargs):
         """Use signal-to-noise threshold to identify potential lines.
 
@@ -47,15 +52,14 @@ class detection_naive(spectra.spectrum):
         self._configDetection(**kwargs)
 
         with np.errstate(divide='ignore', invalid='ignore'):
-            signal_to_noise = abs((self.y - self.continuum - self.lines)/self.error)
+            signal_to_noise = abs((self.y - self.continuum)/self.error)
+        known_peaks = [self.peak_index_from_wavelength(l.x0, signal_to_noise) for l in self.L]
 
         in_line = False
-
         peak_idx = -1
         peak_val = -99
 
         for idx, SN in enumerate(signal_to_noise):
-
             if in_line is False and SN > self.threshold:
                 in_line = True
                 peak_idx = idx
@@ -64,12 +68,14 @@ class detection_naive(spectra.spectrum):
                 peak_idx = idx
                 peak_val = SN
             elif in_line is True and SN < self.threshold:
-                self.L.append(lines.line(x0=self.x[peak_idx],
-                                         comment=f"Found by model_detection_naive @ S/N={peak_val:.3f}"))
+                if peak_idx not in known_peaks:
+                    self.L.append(lines.line(x0=self.x[peak_idx],
+                                             comment=f"Found by model_detection_naive @ S/N={peak_val:.3f}"))
+                    known_peaks.append(peak_idx)
                 in_line = False
                 peak_idx = -1
                 peak_val = -99
             else:
-#                print("%d %f %d %d %f" % (idx, SN, in_line, peak_idx, peak_val))
+                # print("%d %f %d %d %f" % (idx, SN, in_line, peak_idx, peak_val))
                 pass
         self.L.sort(key=lines.sortLines)
