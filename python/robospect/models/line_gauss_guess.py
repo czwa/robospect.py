@@ -71,8 +71,12 @@ class line_gauss_guess(spectra.spectrum):
             ##   * searchsorted isn't quite as good as I want, but I think this resolves the issue now.
             ##   * the inputs to _centroid wasn't including the right-most pixel.  fixed?
             ##   * the off-by-one issue hits the F-calculation as well.
+            if line.x0 < self.x[0] or line.x0 > self.x[-1]:
+                continue
 
             center= np.searchsorted(self.x, line.x0, side='left')
+            if center < 0 or center >= len(self.x):
+                continue
             #            print("%s: %f => %d (%f %f)" % (line.comment, line.x0, center, self.x[center], self.x[center + 1]))
 
             start = np.searchsorted(self.x, line.x0 - self.range, side='left')

@@ -61,8 +61,10 @@ def write_ascii_catalog(filename, lines):
         # This is not a context manager, as that only exists in np 1.16?
         np.set_printoptions(formatter={'float': '{: 0.6f}'.format})
         for L in lines:
+            while len(L.Q) < 3:
+                L.Q.append(0.0) 
             if len(L.dQ) < 2:
-                L.dQ = 0.1 * L.Q
+                L.dQ = 0.1 * np.array(L.Q)
                 L.flags = L.flags | 0x8000
 
             f.write ("%.4f %s   %s   %s       %f   %f   %f 0x%x   %d  %s\n" %

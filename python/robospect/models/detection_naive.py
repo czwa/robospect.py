@@ -38,8 +38,12 @@ class detection_naive(spectra.spectrum):
 
     def peak_index_from_wavelength(self, wavelength, SN, search_width=5):
         index_guess = np.searchsorted(self.x, wavelength, side='left')
-        peak_idx = np.argmax(SN[index_guess - search_width:index_guess + search_width])
-        return peak_idx + index_guess - search_width
+        testArray = SN[index_guess - search_width:index_guess + search_width]
+        if len(testArray) <= 0:
+            return index_guess
+        else:
+            peak_idx = np.argmax(SN[index_guess - search_width:index_guess + search_width])
+            return peak_idx + index_guess - search_width
 
     def fit_detection(self, **kwargs):
         """Use signal-to-noise threshold to identify potential lines.

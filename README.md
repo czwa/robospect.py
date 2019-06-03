@@ -1,14 +1,18 @@
 # robospect.py
-Python port of robospect
+Python port of robospect (Waters & Hollek, 2013, PASP, 125, 1164).
 
 The current working codebase is on the master branch.  Full
 documentation is forthcoming, but a few example run commands are
 listed below.
 
 To install the package:
+
       > python3 ./setup.py install [--user]
+
 or
+
       > python3 ./setup.py develop [--user]
+
 depending on if code development will be performed.
 
 Tests are not currently complete, but will check that your environment

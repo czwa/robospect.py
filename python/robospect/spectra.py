@@ -156,7 +156,7 @@ class spectrum(object):
         max_sigma = kwargs.pop("max_sigma", 100.0)
         max_flux = kwargs.pop("max_flux", 2.5)
 
-        self.lines = np.copy(self.continuum)
+        self.lines = np.zeros_like(self.x)
         for line in self.L:
             start = np.searchsorted(self.x, line.x0 - 100.0, side='left')
             end   = np.searchsorted(self.x, line.x0 + 100.0, side='right')

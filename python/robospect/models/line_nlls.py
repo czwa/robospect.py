@@ -65,6 +65,9 @@ class line_nlls(spectra.spectrum):
         self._configLine(**kwargs)
 
         for line in self.L:
+            if line.x0 < self.x[0] or line.x0 > self.x[-1]:
+                line.flags = 0xfff
+                continue
             start = np.searchsorted(self.x, line.Q[0] - 5.0 * abs(line.Q[1]), side='left')
             end   = np.searchsorted(self.x, line.Q[0] + 5.0 * abs(line.Q[1]), side='right')
 
