@@ -55,7 +55,10 @@ class Config:
         self.log = logging.getLogger("robospect.config")
 
         # Parse command line/input configuration dicts to generate new conf parameters.
-        argument_list = args[0]
+        if isinstance(args, tuple) and len(args) > 0:
+            argument_list = args[0]
+        else:
+            argument_list = args
         self.arg_dict = self._parse(*args, **kwargs)
 
         # Internal assistance parameters.
