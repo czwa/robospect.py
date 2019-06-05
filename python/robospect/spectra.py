@@ -27,7 +27,8 @@ class M_spectrum(type):
     pass
 
 class spectrum(object):
-    r"""Data, model, and fitting method code.
+    r"""Class to hold data objects and fitting methods.
+
     """
 
     def __init__(self, *args, **kwargs):
@@ -98,35 +99,35 @@ class spectrum(object):
             # Write outputs?
 
     def fit_repair(self, **kwargs):
-        r"""Method to correct spectra for wavelength solution errors and other issues.
+        """Method to correct spectra for wavelength solution errors and other issues.
 
         To be implemented by subclasses.
         """
         pass
 
     def fit_detection(self, **kwargs):
-        r"""Method to scan spectra for peaks that may be unmeasured lines.
+        """Method to scan spectra for peaks that may be unmeasured lines.
 
         To be implemented by subclasses.
         """
         pass
 
     def fit_error(self, **kwargs):
-        r"""Method to measure the empirical noise level of the spectrum.
+        """Method to measure the empirical noise level of the spectrum.
 
         To be implemented by subclasses.
         """
         pass
 
     def fit_continuum(self, **kwargs):
-        r"""Method to measure the continuum level of the spectrum.
+        """Method to measure the continuum level of the spectrum.
 
         To be implemented by subclasses.
         """
         pass
 
     def fit_initial(self, **kwargs):
-        r"""Method to do initial linear fits to lines in the catalog.
+        """Method to do initial linear fits to lines in the catalog.
 
         This method should ideally operate in O(n_lines),
 
@@ -135,21 +136,28 @@ class spectrum(object):
         pass
 
     def fit_lines(self, **kwargs):
-        r"""Method to do complete fits to lines in the catalog.
+        """Method to do complete fits to lines in the catalog.
 
         To be implemented by subclasses.
         """
         pass
 
     def fit_deblend(self, **kwargs):
-        r"""Method to deblend lines from each other.
+        """Method to deblend lines from each other.
 
         To be implemented by subclasses.
         """
         pass
 
     def line_update(self, **kwargs):
-        r"""Method to update current line model based on line profile parameters.
+        """Method to update current line model based on line profile parameters.
+
+        Configuration
+        -------------
+        position_error : `float`
+        max_sigma : `float`
+        max_flux : `float`
+        chi_window : `float`
 
         """
         position_error = kwargs.pop("position_error", 5.0)
