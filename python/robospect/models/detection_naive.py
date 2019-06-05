@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+import logging
 import numpy as np
 import robospect.spectra as spectra
 import robospect.lines as lines
@@ -56,6 +57,8 @@ class detection_naive(spectra.spectrum):
         detection threshold, and make sure they are local maxima.
         """
         self._configDetection(**kwargs)
+        logger = logging.getLogger(__name__)
+        logger.setLevel(self.verbose)
 
         with np.errstate(divide='ignore', invalid='ignore'):
             signal_to_noise = abs((self.y - self.continuum)/self.error)
@@ -80,10 +83,11 @@ class detection_naive(spectra.spectrum):
                     new_line.flags.set("DETECTED")
                     self.L.append(new_line)
                     known_peaks.append(peak_idx)
+                    logger.debug(f"Found: {new_line} @{peak_val:.3f}")
                 in_line = False
                 peak_idx = -1
                 peak_val = -99
             else:
-                # print("%d %f %d %d %f" % (idx, SN, in_line, peak_idx, peak_val))
+                logger.debug("Edge case: %d %f %d %d %f" % (idx, SN, in_line, peak_idx, peak_val))
                 pass
         self.L.sort(key=lines.sortLines)

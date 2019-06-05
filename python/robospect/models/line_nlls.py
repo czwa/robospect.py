@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-
+import logging
 import scipy.optimize as spO
 import numpy as np
 from robospect import spectra
@@ -40,6 +40,8 @@ class line_nlls(spectra.spectrum):
 
     def fit_lines(self, **kwargs):
         self._configLine(**kwargs)
+        logger = logging.getLogger(__name__)
+        logger.setLevel(self.verbose)
 
         for line in self.L:
             if line.x0 < self.x[0] or line.x0 > self.x[-1]:
@@ -74,3 +76,4 @@ class line_nlls(spectra.spectrum):
                 line.flags.set("FIT_FAIL")
             except TypeError:
                 line.flags.set("FIT_FAIL")
+            logger.debug(f"Fit: {line.chi:.3f} {line}")

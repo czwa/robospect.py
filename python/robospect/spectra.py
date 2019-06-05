@@ -18,6 +18,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 import numpy as np
+import logging
 
 from robospect import lines
 
@@ -44,6 +45,7 @@ class spectrum(object):
         self.alternate = np.zeros(len(self.x))
         self.error = np.zeros(len(self.x))
 
+        self.log = logging.getLogger("robospect.spectra")
         # Things like general tolerances probably should be here too.
         fitting_parameters = kwargs.setdefault('fitting', None)
         if fitting_parameters is not None:
@@ -78,8 +80,8 @@ class spectrum(object):
             self.line_update(**kwargs)
 
         while iteration < max_iteration:
-            print("## Iteration %d / %d   %d lines" %
-                  (iteration, max_iteration, len(self.L)))
+            self.log.info("## Iteration %d / %d   %d lines" %
+                          (iteration + 1, max_iteration, len(self.L)))
 
             self.fit_continuum(**kwargs)
             self.fit_error(**kwargs)
