@@ -65,9 +65,9 @@ def write_ascii_catalog(filename, lines):
                 L.Q.append(0.0) 
             if len(L.dQ) < 2:
                 L.dQ = 0.1 * np.array(L.Q)
-                L.flags = L.flags | 0x8000
+                L.flags.set("FIT_ERROR_ESTIMATED")
 
-            f.write ("%.4f %s   %s   %s       %f   %f   %f 0x%x   %d  %s\n" %
+            f.write ("%.4f %s   %s   %s       %f   %f   %f  %s  %d  %s\n" %
                      (L.x0, L.Q, L.dQ, L.pQ,
                       _eqw(L.Q[2]), _eqw(L.dQ[2]),
                       L.chi, L.flags, L.blend, L.comment))

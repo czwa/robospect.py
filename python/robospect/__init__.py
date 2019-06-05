@@ -19,6 +19,7 @@
 #
 
 from . import models
+from .flags import *
 from .lines import *
 from .spectra import *
 from .config import *

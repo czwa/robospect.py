@@ -20,7 +20,7 @@
 
 __all__ = ["Flags"]
 
-def Flags():
+class Flags():
     BIT_PADDING = 16
 
     INFO = {'NONE':        (0x0, "No additional information."),
@@ -36,6 +36,7 @@ def Flags():
                'FIT_CHISQ': (2, "Chi^2 did not improve with inclusion of line.  Line ignored."),
                'FIT_DELTA': (4, "Large parameter shift between line prior and fit.  Line ignored."),
                'FIT_BOUND': (8, "Line parameters exceed allowed bounds.  Line ignored."),
+               'FIT_ERROR_ESTIMATED': (0x01, "No error calculated.  Estimated at 10%"),
                }
 
     def __init__(self):
@@ -48,25 +49,65 @@ def Flags():
         return hex(self.value)
 
     def string_to_value(self, flagString=None):
+        """Convert a flag name to the decimal value.
+
+        Parameters
+        ----------
+        flagString : `str`
+            Flag name to convert.
+
+        Returns
+        -------
+        value : `int`
+            Requested flag value.
+
+        Notes
+        -----
+        This packs quality flags into the lower 16 bits, and pushes
+        info flags into the upper 16.
+        """
         if flagString is None:
             return 0
-        elif flagString in keys(self.QUALITY):
+        elif flagString in self.QUALITY.keys():
             return self.QUALITY[flagString][0]
-        elif flagString in keys(self.INFO):
+        elif flagString in self.INFO.keys():
             return self.INFO[flagString][0] << self.BIT_PADDING
         else:
             raise RuntimeError(f"Unknown flag string: {flagString}")
 
     def reset(self):
-        return 0
+        """Reset this flag to value zero.
+        """
+        self.value = 0
 
     def set(self, flagString=None):
+        """Set a the bitmask associated with a given flag.
+
+        Parameters
+        ----------
+        flagString : `str`
+            Flag name to convert.
+        """
         self.value |= self.string_to_value(flagString)
 
     def unset(self, flagString=None):
+        """Unset a the bitmask associated with a given flag.
+
+        Parameters
+        ----------
+        flagString : `str`
+            Flag name to convert.
+        """
         self.value &= ~(self.string_to_value(flagString))
 
     def get_flag_values(self):
+        """Get list of flags set for this flag.
+
+        Returns
+        -------
+        flagKeys : `List`
+            List of flag names assigned for this flag.
+        """
         flagKeys = []
         for key, value, doc in self.LIST.items():
             if self.value & value:
@@ -74,9 +115,15 @@ def Flags():
         return flagKeys
 
     def doc_flags(self):
-        docString = ""
-        for key, value, doc in self.LIST.items():
-            if self.value & value:
-                docString += "%20s %10s %48s\n" % (key, hex(value), doc)
-        return(docString)
+        """Get text string containing all known flags, listed one per line.
 
+        Returns
+        -------
+        docString : `str`
+            Documentation string for all known flags.
+        """
+        docString = ""
+        for key, value, doc in sorted(self.LIST.items(), key=lambda flag: flag[1]):
+            if self.value & value:
+                docString += "## %20s %10s %48s\n" % (key, hex(value), doc)
+        return(docString)

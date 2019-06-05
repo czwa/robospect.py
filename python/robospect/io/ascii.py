@@ -58,6 +58,7 @@ def read_ascii_linelist(filename, lines=None):
                 else:
                     new_line = RS.line(float(tokens[0]),
                                        comment=" ".join([str(x) for x in tokens[1:]]))
+                new_line.flags.set("SUPPLIED")
                 lines.append(new_line)
 
     lines.sort(key=RS.sortLines)

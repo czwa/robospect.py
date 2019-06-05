@@ -17,12 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-
 import numpy as np
 import robospect.spectra as spectra
 import robospect.lines as lines
+import robospect.flags as flags
+
 
 __all__ = ['detection_naive']
+
 
 class detection_naive(spectra.spectrum):
     modelName = 'naive'
@@ -73,8 +75,10 @@ class detection_naive(spectra.spectrum):
                 peak_val = SN
             elif in_line is True and SN < self.threshold:
                 if peak_idx not in known_peaks:
-                    self.L.append(lines.line(x0=self.x[peak_idx],
-                                             comment=f"Found by model_detection_naive @ S/N={peak_val:.3f}"))
+                    new_line = lines.line(x0=self.x[peak_idx],
+                                          comment=f"Found by model_detection_naive @ S/N={peak_val:.3f}")
+                    new_line.flags.set("DETECTED")
+                    self.L.append(new_line)
                     known_peaks.append(peak_idx)
                 in_line = False
                 peak_idx = -1
