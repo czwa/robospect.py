@@ -62,7 +62,7 @@ def write_ascii_catalog(filename, lines):
         np.set_printoptions(formatter={'float': '{: 0.6f}'.format})
         for L in lines:
             while len(L.Q) < 3:
-                L.Q.append(0.0) 
+                L.Q.append(0.0)
             if len(L.dQ) < 2:
                 L.dQ = 0.1 * np.array(L.Q)
                 L.flags.set("FIT_ERROR_ESTIMATED")
