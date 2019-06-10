@@ -252,11 +252,10 @@ class Config:
 
     def read_spectrum(self, spectrum_file=None):
         S = self.construct_spectra_class(None, **self.arg_dict)
-        if spectrum_file is not None:
-            self.spectrum_file = spectrum_file
+
+        self.spectrum_file = spectrum_file if spectrum_file is not None
         S = io.read_ascii_spectrum(self.spectrum_file, spectrum=S)
-        if self.line_list is not None:
-            S.L = io.read_ascii_linelist(self.line_list, lines=None)
+        S.L = io.read_ascii_linelist(self.line_list, lines=None) if self.line_list is not None
         S.log.debug(f"spectrum structure: {dir(S)}")
 
         return S
