@@ -47,7 +47,27 @@ def _eqw(F):
 
 
 def write_ascii_catalog(filename, lines):
-    """Write list of lines to ascii format
+    """Write list of lines to ascii format.
+
+    Parameters
+    ----------
+    filename : `str`
+        Output name to write the line catalog.
+    lines : `list` of `robospect.lines.line`
+        List of lines to write.
+
+    Returns
+    -------
+
+    Raises
+    ------
+    RuntimeError :
+        Raised if no line list is supplied.
+
+    Flags
+    -----
+    FIT_ERROR_ESTIMATED :
+        Set if no error was received for a line.
     """
     if lines is None:
         raise RuntimeError("No lines specified to write")
@@ -55,6 +75,9 @@ def write_ascii_catalog(filename, lines):
     with smart_open(filename) as f:
         f.write ("## Robospect line catalog\n")
         f.write ("## Flags:\n")
+        if len(lines) > 0:
+            for flagDoc in (lines[0].flags.doc_flags()):
+                f.write(flagDoc)
         f.write ("## Units\n")
         f.write ("## Headers\n")
 

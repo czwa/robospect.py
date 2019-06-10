@@ -23,7 +23,7 @@ __all__ = ["Flags"]
 class Flags():
     BIT_PADDING = 16
 
-    INFO = {'NONE':        (0x0, "No additional information."),
+    INFO = {'NONE':            (0x00, "No additional information."),
             'SUPPLIED' :       (0x01, "Line supplied from external list."),
             'DETECTED' :       (0x02, "Line detected from the data."),
             'BLEND' :          (0x04, "Line fit as part of a blend."),
@@ -31,12 +31,12 @@ class Flags():
             'WAVELENGTH_FIT' : (0x20, "Wavelenth solution measured for this line."),
             }
 
-    QUALITY = {'NONE':      (0, "No known issue with line fit."),
-               'FIT_FAIL':  (1, "Solver returned impossible value.  Line ignored."),
-               'FIT_CHISQ': (2, "Chi^2 did not improve with inclusion of line.  Line ignored."),
-               'FIT_DELTA': (4, "Large parameter shift between line prior and fit.  Line ignored."),
-               'FIT_BOUND': (8, "Line parameters exceed allowed bounds.  Line ignored."),
-               'FIT_ERROR_ESTIMATED': (0x01, "No error calculated.  Estimated at 10%"),
+    QUALITY = {'NONE':      (0x00, "No known issue with line fit."),
+               'FIT_FAIL':  (0x01, "Solver returned impossible value.  Line ignored."),
+               'FIT_CHISQ': (0x02, "Chi^2 did not improve with inclusion of line.  Line ignored."),
+               'FIT_DELTA': (0x04, "Large parameter shift between line prior and fit.  Line ignored."),
+               'FIT_BOUND': (0x08, "Line parameters exceed allowed bounds.  Line ignored."),
+               'FIT_ERROR_ESTIMATED': (0x10, "No error calculated.  Estimated at 10%"),
                }
 
     def __init__(self):
@@ -47,6 +47,31 @@ class Flags():
 
     def __repr__(self):
         return hex(self.value)
+
+    def string_to_doc(self, flagString=None):
+        """Convert a flag name to the documentation string.
+
+        Parameters
+        ----------
+        flagString : `str`
+            Flag name to convert.
+
+        Returns
+        -------
+        doc : `str`
+            Requested flag description.
+
+        Notes
+        -----
+        """
+        if flagString is None:
+            return ""
+        elif flagString in self.QUALITY.keys():
+            return self.QUALITY[flagString][1]
+        elif flagString in self.INFO.keys():
+            return self.INFO[flagString][1]
+        else:
+            raise RuntimeError(f"Unknown flag string: {flagString}")
 
     def string_to_value(self, flagString=None):
         """Convert a flag name to the decimal value.
@@ -143,8 +168,16 @@ class Flags():
         docString : `str`
             Documentation string for all known flags.
         """
-        docString = ""
-        for key, value, doc in sorted(self.LIST.items(), key=lambda flag: flag[1]):
-            if self.value & value:
-                docString += "## %20s %10s %48s\n" % (key, hex(value), doc)
+        docString = []
+
+        for key, valueDoc in sorted(self.QUALITY.items(), key=lambda flag: flag[1]):
+            value, doc = valueDoc
+            value = self.string_to_value(flagString=key)
+            doc = self.string_to_doc(flagString=key)
+            docString.append("## %20s 0x%08x %-45s\n" % (key, value, doc))
+        for key, valueDoc in sorted(self.INFO.items(), key=lambda flag: flag[1]):
+            value, doc = valueDoc
+            value = self.string_to_value(flagString=key)
+            doc = self.string_to_doc(flagString=key)
+            docString.append("## %20s 0x%08x %-45s\n" % (key, value, doc))
         return(docString)

@@ -51,10 +51,28 @@ class detection_naive(spectra.spectrum):
     def fit_detection(self, **kwargs):
         """Use signal-to-noise threshold to identify potential lines.
 
+        Parameters
+        ----------
+        threshold : `float`, optional
+            Sigma detection threshold for a pixel for it to be flagged
+            as part of a line.  Default = 3.0.
+
+        Returns
+        -------
+
+        Raises
+        ------
+
+        Flags
+        -----
+        DETECTED :
+            Set to mark that this line was detected from the data
+
         Notes
         -----
         Iterate over the S/N array, identify pixels that are above the
         detection threshold, and make sure they are local maxima.
+
         """
         self._configDetection(**kwargs)
         logger = logging.getLogger(__name__)
