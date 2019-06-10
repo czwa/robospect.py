@@ -65,10 +65,10 @@ class line():
         self.chi = 0.0
         self.Niter = 0
 
-        self.comment = comment  if comment is not None:
-        self.flags = flags      if flags is not None:
-        self.blend = blend      if blend is not None:
-        self.Q = Q              if Q is not None:
+        self.comment = comment  if comment is not None else ""
+        self.flags = flags      if flags is not None else Flags()
+        self.blend = blend      if blend is not None else 0
+        self.Q = Q              if Q is not None else []
 
     def __repr__(self):
         return "Line(%.2f %s %s %s ##%s)" % (self.x0, self.pQ, self.Q, self.flags, self.comment)

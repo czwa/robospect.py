@@ -114,7 +114,8 @@ def spect_compare(plot_key, path_base, *args):
     current_x, current_y, current_e, current_c, current_l, current_Lines = run_current(path_base, *args)
 
     if len(file_x) != len(current_x):
-        raise RuntimeError("Did not recieve arrays of the same length!")
+        raise RuntimeError("Did not recieve arrays of the same length! %d %d" %
+                           (len(file_x), len(current_x)))
 
     # lines is defined differently now.
     current_l = current_c - current_l

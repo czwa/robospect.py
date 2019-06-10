@@ -89,10 +89,14 @@ class Config:
 
         # This almost certainly needs to be fixed and updated.
         # Set defaults
-        self.continuum_model = self.rs_models["continuum"]["boxcar"] if self.continuum_model is None
-        self.detection_model = self.rs_models["detection"]["naive"]  if self.detection_model is None
-        self.initial_model = self.rs_models["line"]["pre"]           if self.initial_model is None
-        self.line_model = self.rs_models["line"]["nlls"]             if self.line_model is None
+        if self.continuum_model is None:
+            self.continuum_model = self.rs_models["continuum"]["boxcar"]
+        if self.detection_model is None:
+            self.detection_model = self.rs_models["detection"]["naive"]
+        if self.initial_model is None:
+            self.initial_model = self.rs_models["line"]["pre"]
+        if self.line_model is None:
+            self.line_model = self.rs_models["line"]["nlls"]
 
         # Handle fitting arguments
         fittingArgs = self.arg_dict["fitting"]
@@ -253,9 +257,10 @@ class Config:
     def read_spectrum(self, spectrum_file=None):
         S = self.construct_spectra_class(None, **self.arg_dict)
 
-        self.spectrum_file = spectrum_file if spectrum_file is not None
+        if spectrum_file is not None:
+            self.spectrum_file = spectrum_file
         S = io.read_ascii_spectrum(self.spectrum_file, spectrum=S)
-        S.L = io.read_ascii_linelist(self.line_list, lines=None) if self.line_list is not None
+        S.L = io.read_ascii_linelist(self.line_list, lines=None) if self.line_list is not None else []
         S.log.debug(f"spectrum structure: {dir(S)}")
 
         return S
@@ -290,11 +295,16 @@ class Config:
         sub-class being set in the configuration class.
         """
         inheritance_list = []
-        inheritance_list.append(self.detection_model)  if self.detection_model is not None
-        inheritance_list.append(self.noise_model)      if self.noise_model is not None
-        inheritance_list.append(self.continuum_model)  if self.continuum_model is not None
-        inheritance_list.append(self.initial_model)    if self.initial_model is not None
-        inheritance_list.append(self.line_model)       if self.line_model is not None
+        if self.detection_model is not None:
+            inheritance_list.append(self.detection_model)
+        if self.noise_model is not None:
+            inheritance_list.append(self.noise_model)
+        if self.continuum_model is not None:
+            inheritance_list.append(self.continuum_model)
+        if self.initial_model is not None:
+            inheritance_list.append(self.initial_model)
+        if self.line_model is not None:
+            inheritance_list.append(self.line_model)
         inheritance_list.append(spectra.spectrum)
 
         inheritance = tuple(inheritance_list)
