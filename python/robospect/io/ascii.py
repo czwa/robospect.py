@@ -40,6 +40,11 @@ def read_ascii_linelist(filename, lines=None):
     -------
     lines : List of `robospect.lines.line`
         List of lines read.
+
+    Flags
+    -----
+    SUPPLIED :
+        Set to note that a line came from a supplied line list.
     """
     if lines is None:
         lines = []
