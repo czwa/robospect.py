@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-
+import logging
 import numpy as np
 import robospect.spectra as spectra
 
@@ -37,6 +37,8 @@ class noise_boxcar(spectra.spectrum):
 
     def fit_error(self, **kwargs):
         self._configNoise(**kwargs)
+        logger = logging.getLogger(__name__)
+        logger.setLevel(self.verbose)
 
         temp = abs(self.y - self.lines - self.continuum)
         for idx, w in enumerate(self.x):

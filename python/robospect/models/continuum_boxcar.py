@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-
+import logging
 import numpy as np
 from robospect import spectra
 
@@ -38,6 +38,8 @@ class continuum_boxcar(spectra.spectrum):
 
     def fit_continuum(self, **kwargs):
         self._configContinuum(**kwargs)
+        logger = logging.getLogger(__name__)
+        logger.setLevel(self.verbose)
 
         temp = self.y - self.lines
         for idx, w in enumerate(self.x):
@@ -60,4 +62,6 @@ class continuum_boxcar(spectra.spectrum):
                 self.error[idx] = 1.4826 * np.median(noise)
 
     def fit_error(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        logger.setLevel(self.verbose)
         pass

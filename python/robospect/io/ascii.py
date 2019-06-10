@@ -58,10 +58,10 @@ def read_ascii_linelist(filename, lines=None):
                 else:
                     new_line = RS.line(float(tokens[0]),
                                        comment=" ".join([str(x) for x in tokens[1:]]))
+                new_line.flags.set("SUPPLIED")
                 lines.append(new_line)
 
     lines.sort(key=RS.sortLines)
-
     return(lines)
 
 
@@ -98,7 +98,6 @@ def read_ascii_spectrum(filename, spectrum=None):
     spectrum model.
 
     """
-
     index = 0
     if filename is None:
         raise RuntimeError("No spectrum filename specified.")

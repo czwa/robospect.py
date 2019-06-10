@@ -19,6 +19,7 @@
 #
 
 import argparse
+import logging
 
 from . import spectra
 from . import models
@@ -26,10 +27,10 @@ from . import io
 
 __all__ = ['Config', 'VERSION']
 
-VERSION = 'dev-201905'
+VERSION = 'dev-201906'
 
 class Config:
-    r"""Configuration handler for ROBOSPECT.
+    """Configuration handler for ROBOSPECT.
 
     This class is designed to handle three main tasks:
 
@@ -46,13 +47,25 @@ class Config:
     rs_models = dict()
 
     def __init__(self, *args, **kwargs):
-        # Internal debug assistance things
-        if len(args) > 0:
-            self.command_line = " ".join(*args)
+        # Initialize logging code.
+        logging.basicConfig(format='%(asctime)s %(name)-10s %(levelname) 8s %(message)s',
+                            datefmt="%Y-%m-%d %H:%M:%S",
+                            level=logging.INFO)
+        self.mainLog = logging.getLogger("robospect")
+        self.log = logging.getLogger("robospect.config")
+
+        # Parse command line/input configuration dicts to generate new conf parameters.
+        if isinstance(args, tuple) and len(args) > 0:
+            argument_list = args[0]
         else:
-            self.command_line = ""
+            argument_list = args
+        self.arg_dict = self._parse(*args, **kwargs)
+
+        # Internal assistance parameters.
+        self.command_line = " ".join(argument_list)
+        self.log.info(f"command line: {self.command_line}")
         self.version = VERSION
-        print("## %s\n## %s" % (self.command_line, self.version))
+        self.log.info(f"code version: {self.version}")
 
         # Pack models into dict for access later
         for rsModel in (dir(models)):
@@ -62,9 +75,8 @@ class Config:
                     modelName = model.modelName
                     self.rs_models.setdefault(modelPhase,
                                               dict()).setdefault(modelName, model)
-
-        # Parse command line/input configuration dicts to generate new conf parameters.
-        self.arg_dict = self._parse(*args, **kwargs)
+                    self.log.debug("init: name: %s phase: %s" %
+                                   (modelName, modelPhase))
 
         # Model selection setting
         for modelPhase in self.model_phases:
@@ -95,7 +107,6 @@ class Config:
         self.tolerance = fittingArgs.setdefault("tolerance", 1e-3)
         self.output = fittingArgs.setdefault("output", "/tmp/rs")
         self.plot_all = fittingArgs.setdefault("plot_all", False)
-        self.log = fittingArgs.setdefault("log", "/tmp/rs.log")
 
         self.iteration = 0
 
@@ -166,6 +177,7 @@ class Config:
                     arguments[argClass][t[0]] = t[1]
 
         backwardsCompatParser = argparse.ArgumentParser()
+        backwardsCompatParser.add_argument('-v', "--verbose", action='count', default=0)
         backwardsCompatParser.add_argument('-V', "--continuum_box",
                                            default=50.0, type=float,
                                            help="Width (in AA) for continuum/noise box")
@@ -184,7 +196,6 @@ class Config:
         # backwardsCompatParser.add_argument('-I', "--save_temp", )
         # backwardsCompatParser.add_argument('-A', "--plot_all", )
         # backwardsCompatParser.add_argument('', "--flux_calibrated", )
-        #        backwardsCompatParser.add_argument('-v', "--verbose", nargs=1)
         # backwardsCompatParser.add_argument('-r', "--deblend_radius", nargs=1)
         # backwardsCompatParser.add_argument('', "--deblend_ratio", nargs=1)
         # backwardsCompatParser.add_argument('-d', "--deblend_iterations", nargs=1)
@@ -205,8 +216,26 @@ class Config:
         # backwardsCompatParser.add_argument('', "--strict_flux", )
         # backwardsCompatParser.add_argument('', "--fits_row", nargs=1)
         BCparsed, unparsed = backwardsCompatParser.parse_known_args(unparsed)
+        if "verbose" in vars(BCparsed).keys():
+            verboseLevels = {0: logging.CRITICAL,
+                             1: logging.ERROR,
+                             2: logging.WARNING,
+                             3: logging.INFO,
+                             4: logging.DEBUG,
+                             5: logging.NOTSET}
+            try:
+                self.verbose = verboseLevels[BCparsed.verbose]
+            except KeyError:
+                # Assume you pounded the "v" key infinity times.
+                self.verbose = logging.NOTSET
+            self.log.setLevel(self.verbose)
         if "path_base" in vars(BCparsed).keys():
             arguments['fitting']['path_base'] = BCparsed.path_base
+            if BCparsed.path_base is not None:
+                logfile = logging.FileHandler(filename=BCparsed.path_base + ".log", mode="w")
+                # This is an ugly hack.
+                logfile.setFormatter(self.mainLog.root.handlers[0].formatter)
+                self.mainLog.addHandler(logfile)
         if "continuum_box" in vars(BCparsed).keys():
             arguments['continuum']['box_size'] = BCparsed.continuum_box
         if "iterations" in vars(BCparsed).keys():
@@ -221,8 +250,7 @@ class Config:
         if len(unparsed) > 0:
             arguments['fitting']['spectrum_file'] = unparsed.pop(0)
         if len(unparsed) > 0:
-            print("Unparsed arguments! %s" % (unparsed))
-            print("INFO: valid arguments: %s" % (arguments))
+            self.log.warning(f"Unparsed arguments: {unparsed}")
 
         return arguments
 
@@ -233,7 +261,8 @@ class Config:
         S = io.read_ascii_spectrum(self.spectrum_file, spectrum=S)
         if self.line_list is not None:
             S.L = io.read_ascii_linelist(self.line_list, lines=None)
-        print("## %s" % (dir(S)))
+        S.log.debug(f"spectrum structure: {dir(S)}")
+
         return S
 
     def write_results(self, spectrum):
@@ -280,11 +309,14 @@ class Config:
 
         inheritance = tuple(inheritance_list)
         for i in inheritance_list:
-            print(i)
-        # print(inheritance_list)
+            self.log.debug(i)
 
         class Spectra(*inheritance):
             def __init__(self, *args, **kwargs):
+                if "verbose" in kwargs.keys():
+                    self.verbose = kwargs["verbose"]
+                    self.log = logging.getLogger("robospect.spectra")
+                    self.log.setLevel(self.verbose)
                 super().__init__(*args, **kwargs)
 
             def copy_data(self, spectrum):
@@ -300,4 +332,4 @@ class Config:
                 self.L = spectrum.L
                 self.filename = spectrum.filename
 
-        return Spectra(*args, **kwargs)
+        return Spectra(*args, **kwargs, verbose=self.verbose)

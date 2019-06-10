@@ -17,10 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-
 import numpy as np
+from robospect.flags import Flags
+
 
 __all__ = ['line', 'sortLines']
+
 
 class line():
     r"""An object representing a single line fit.
@@ -48,7 +50,7 @@ class line():
     Niter = -1
 
     comment = ""
-    flags = 0xffff
+    flags = Flags()
     blend = 0
 
     def __init__(self, x0, Nparam=None, comment=None, flags=None, blend=None, Q=None):
@@ -73,7 +75,7 @@ class line():
             self.Q = Q
 
     def __repr__(self):
-        return "Line(%.2f %s %s 0x%x ##%s)" % (self.x0, self.pQ, self.Q, self.flags, self.comment)
+        return "Line(%.2f %s %s %s ##%s)" % (self.x0, self.pQ, self.Q, self.flags, self.comment)
 
     def f(self, x):
         r"""Evaluate the function of this line for the input wavelength.

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-
+import logging
 import numpy as np
 from robospect import spectra
 from robospect.models.profile_shapes import profileFromName
@@ -35,6 +35,9 @@ class continuum_null(spectra.spectrum):
         config = kwargs.pop(self.modelPhase, dict())
 
     def fit_continuum(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        logger.setLevel(self.verbose)
+
         self.continuum = np.ones_like(self.x)
 
 
@@ -47,6 +50,9 @@ class error_null(spectra.spectrum):
         config = kwargs.pop(self.modelPhase, dict())
 
     def fit_error(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        logger.setLevel(self.verbose)
+
         self.error = 1e-6 * np.ones_like(self.x)
 
 
@@ -59,6 +65,9 @@ class detection_null(spectra.spectrum):
         config = kwargs.pop(self.modelPhase, dict())
 
     def fit_detection(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        logger.setLevel(self.verbose)
+
         pass
 
 
@@ -71,6 +80,9 @@ class initial_null(spectra.spectrum):
         config = kwargs.pop(self.modelPhase, dict())
 
     def fit_initial(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        logger.setLevel(self.verbose)
+
         self.alternate = np.zeros_like(self.x)
         for l in self.L:
             l.Q = np.array([l.x0, 0.0, 0.0])
@@ -90,6 +102,9 @@ class line_null(spectra.spectrum):
         self.profile = profileFromName(self.profileName)
 
     def fit_lines(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        logger.setLevel(self.verbose)
+
         self._configLine(**kwargs)
         self.lines = np.zeros_like(self.x)
 

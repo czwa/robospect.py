@@ -18,50 +18,26 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-from robospect import spectra
-from robospect import lines
-
 __all__ = ["Flags"]
 
-def Flags():
-    OLDLIST = {'MAX_ITER': (1, "Solver hit maximum number of iterations without returning a fit within tolerance."),
-               'FIT_FAIL': (2, "Solver returned impossible value and aborted further computation."),
-               'FIT_IGNORED': (4, "Line rejected from consideration due to concerns with fit parameters."),
-               'FIT_REFUSED': (8, "Line rejected from consideration due to lack of chi^2 improvement."),
-               'FIT_LARGE_SHIFT': (16, "Fit mean shifted significantly from expected initial value."),
-               'FIT_RECENTER': (32, "Fit mean reset to initial value and refit with fixed mean."),
-               'BAD_WAVELENGTH': (64, "Suspected bad wavelength solution around this line."),
-               'FIX_WAVELENGTH': (128, "Corrected supplied line peak to fit bad wavelength solution."),
-               'FIT_BLEND': (256, "Line believed to be part of a blend."),
-               'FIT_DEBLEND': (512, "Line solution based on deblending model."),
-               'ALT_REFUSED': (1024, "Alternate line model rejected due to lack of chi^2 improvement."),
-               'BAD_ERROR_VAL': (2048, "Error value out of range."),
-               'FUNC_GAUSSIAN': (1048576, "Line fit with Gaussian model."),
-               'FUNC_LORENTZ': (2097152, "Line fit with Lorentzian model."),
-               'FUNC_VOIGHT': (4194304, "Line fit with Voight model."),
-               }
+class Flags():
+    BIT_PADDING = 16
 
-    LIST = {'NONE': (0, "No known issue with line."),
-            # First four bits: line provenance:
-            'SUPPLIED_LINE': (0x10000000, "Line supplied from external list."),
-            'DETECTED_LINE': (0x20000000, "Line detected from data."),
-            'EXPECTED_LINE': (0x40000000, "Line supplied from internal list."),
-            'NOT_USED_0008': (0x80000000, "Flag not used."),
-            # Next four bits: continuum/error:
-            'CONTINUUM_FIXED': (0x01000000, "Continuum set to fixed value."),
-            'CONTINUUM_FIT':   (0x02000000, "Continuum measured from data."),
-            'ERROR_SUPPLIED':  (0x04000000, "Pixel error supplied with data."),
-            'ERROR_FIT':       (0x08000000, "Pixel error measured from data."),
-            # Warnings:
-            'FIT_BLENDED':    (0x00100000, "Line believed to be part of a blend."),
-            'FIT_DEBLENDED':  (0x00200000, "Line solution based on deblending model."),
-            'BAD_WAVELENGTH': (0x00400000, "Line wavelength solution suspect."),
-            'FIX_WAVELENGTH': (0x00800000, "Wavelength solution corrected."),
-            # Initial fit issues:
-            'INIT_FIT_REJECTED': (0x00010000, "Initial fit rejected due to chi^2 issue."),
-            'INIT_FIT_IGNORED':  (0x00020000, "Initial fit ignored due to peak ordering."),
-            # 
+    INFO = {'NONE':        (0x0, "No additional information."),
+            'SUPPLIED' :       (0x01, "Line supplied from external list."),
+            'DETECTED' :       (0x02, "Line detected from the data."),
+            'BLEND' :          (0x04, "Line fit as part of a blend."),
+            'CONTINUUM_FIT'  : (0x10, "Continuum measured for this line."),
+            'WAVELENGTH_FIT' : (0x20, "Wavelenth solution measured for this line."),
             }
+
+    QUALITY = {'NONE':      (0, "No known issue with line fit."),
+               'FIT_FAIL':  (1, "Solver returned impossible value.  Line ignored."),
+               'FIT_CHISQ': (2, "Chi^2 did not improve with inclusion of line.  Line ignored."),
+               'FIT_DELTA': (4, "Large parameter shift between line prior and fit.  Line ignored."),
+               'FIT_BOUND': (8, "Line parameters exceed allowed bounds.  Line ignored."),
+               'FIT_ERROR_ESTIMATED': (0x01, "No error calculated.  Estimated at 10%"),
+               }
 
     def __init__(self):
         self.value = 0
@@ -73,28 +49,81 @@ def Flags():
         return hex(self.value)
 
     def string_to_value(self, flagString=None):
+        """Convert a flag name to the decimal value.
+
+        Parameters
+        ----------
+        flagString : `str`
+            Flag name to convert.
+
+        Returns
+        -------
+        value : `int`
+            Requested flag value.
+
+        Notes
+        -----
+        This packs quality flags into the lower 16 bits, and pushes
+        info flags into the upper 16.
+        """
         if flagString is None:
             return 0
-        elif flagString in keys(self.LIST):
-            return self.LIST[flagString][0]
+        elif flagString in self.QUALITY.keys():
+            return self.QUALITY[flagString][0]
+        elif flagString in self.INFO.keys():
+            return self.INFO[flagString][0] << self.BIT_PADDING
         else:
             raise RuntimeError(f"Unknown flag string: {flagString}")
 
-    def set_flag_value(self, flagString=None):
+    def reset(self):
+        """Reset this flag to value zero.
+        """
+        self.value = 0
+
+    def set(self, flagString=None):
+        """Set a the bitmask associated with a given flag.
+
+        Parameters
+        ----------
+        flagString : `str`
+            Flag name to convert.
+        """
         self.value |= self.string_to_value(flagString)
 
+    def unset(self, flagString=None):
+        """Unset a the bitmask associated with a given flag.
+
+        Parameters
+        ----------
+        flagString : `str`
+            Flag name to convert.
+        """
+        self.value &= ~(self.string_to_value(flagString))
+
     def get_flag_values(self):
+        """Get list of flags set for this flag.
+
+        Returns
+        -------
+        flagKeys : `List`
+            List of flag names assigned for this flag.
+        """
         flagKeys = []
         for key, value, doc in self.LIST.items():
             if self.value & value:
                 flagKeys.append(key)
-
         return flagKeys
 
     def doc_flags(self):
-        docString = ""
-        for key, value, doc in self.LIST.items():
-            if self.value & value:
-                docString += "%20s %10s %48s\n" % (key, hex(value), doc)
-        return(docString)
+        """Get text string containing all known flags, listed one per line.
 
+        Returns
+        -------
+        docString : `str`
+            Documentation string for all known flags.
+        """
+        docString = ""
+        for key, value, doc in sorted(self.LIST.items(), key=lambda flag: flag[1]):
+            if self.value & value:
+                docString += "## %20s %10s %48s\n" % (key, hex(value), doc)
+        return(docString)

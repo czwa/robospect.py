@@ -17,8 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-
+import logging
 import numpy as np
+
 from robospect import spectra
 from robospect import lines
 from robospect import models
@@ -61,6 +62,8 @@ class line_gauss_guess(spectra.spectrum):
 
     def fit_initial(self, **kwargs):
         self._configInitial(**kwargs)
+        logger = logging.getLogger(__name__)
+        logger.setLevel(self.verbose)
 
         self.lines = np.copy(self.continuum)
         P = models.gaussian()
@@ -71,54 +74,43 @@ class line_gauss_guess(spectra.spectrum):
             ##   * searchsorted isn't quite as good as I want, but I think this resolves the issue now.
             ##   * the inputs to _centroid wasn't including the right-most pixel.  fixed?
             ##   * the off-by-one issue hits the F-calculation as well.
-            if line.x0 < self.x[0] or line.x0 > self.x[-1]:
+            if line.x0 < self.min() or line.x0 > self.max():
                 continue
 
             center= np.searchsorted(self.x, line.x0, side='left')
             if center < 0 or center >= len(self.x):
                 continue
-            #            print("%s: %f => %d (%f %f)" % (line.comment, line.x0, center, self.x[center], self.x[center + 1]))
 
             start = np.searchsorted(self.x, line.x0 - self.range, side='left')
             end   = np.searchsorted(self.x, line.x0 + self.range, side='right')
-            #            print("%d %d => %f %f" % (start, end, self.x[start], self.x[end]))
+            logger.debug("%d %d => %f %f" % (start, end, self.x[start], self.x[end]))
+
             # mean
             centroidRange = 1
             m = self._centroid(self.x[center - centroidRange:center + centroidRange + 1],
                                temp[center - centroidRange:center + centroidRange + 1])
             if m is None:
                 m = self.x[center]
-            # print("%f %f %f %d" % (line.x0, m, 1.0, center))
-            #            center= np.searchsorted(self.x, m, side='left') - 1
+            logger.debug("%f %f %f %d" % (line.x0, m, 1.0, center))
+
+	    # Initial flux = flux at line center.
             F = temp[center]
+            logger.debug("%f %f [%f %f %f] %d" % (line.x0, m, F, temp[center - 1], temp[center + 1], center))
 
-#            print("%f %f [%f %f %f] %d" % (line.x0, m, F, temp[center - 1], temp[center + 1], center))
-            ## CZW: ok?
-
-            ## This is truncating the two sides unevenly, I think.  This leads to sigma differences, which are the issue.
-            #            print(temp[start: center + 1] / F)
-            #            print(self.x[start: center + 1])
+            ## This is truncating the two sides unevenly, I think,
+            ## which to sigma differences, which are the issue.
             hwhm1, hwqm1, hw3qm1 = (0.0, 0.0, 0.0)
             for idx in range(center, start, -1):
-#                print("(%d %f) (%f %f %f)" % (idx, temp[idx] / F, hwhm1, hwqm1, hw3qm1))
-#                print("LV (%f %f %f)" % (temp[idx] / F, temp[idx - 1] / F, temp[idx + 1] / F))
                 if hw3qm1 == 0.0 and abs(temp[idx - 1] / F) < 0.75:
                     hw3qm1 = self._interpY(self.x, temp, idx, 0.75 * F)
-#                    print(" (%d %f) (%f %f %f)" % (idx, temp[idx] / F, hwhm1, hwqm1, hw3qm1))
                 if hwhm1 == 0.0 and abs(temp[idx - 1] / F) < 0.5:
                     hwhm1 = self._interpY(self.x, temp, idx, 0.5 * F)
-#                    print("  (%d %f) (%f %f %f)" % (idx, temp[idx] / F, hwhm1, hwqm1, hw3qm1))
                 if hwqm1 == 0.0 and abs(temp[idx - 1] / F) < 0.25:
                     hwqm1 = self._interpY(self.x, temp, idx, 0.5 * F)
-#                    print("   (%d %f) (%f %f %f)" % (idx, temp[idx] / F, hwhm1, hwqm1, hw3qm1))
                     break
 
             hwhm2, hwqm2, hw3qm2 = (0.0, 0.0, 0.0)
-            #            print(temp[center:end + 1] / F)
-            #            print(self.x[center:end + 1])
             for idx in range(center , end + 1, 1):
-#                print("(%d %f) (%f %f %f)" % (idx, temp[idx] / F, hwhm2, hwqm2, hw3qm2))
-#                print("RV (%f %f %f)" % (temp[idx] / F, temp[idx - 1] / F, temp[idx + 1] / F))
                 if hw3qm2 == 0.0 and abs(temp[idx + 1] / F) < 0.75:
                     hw3qm2 = self._interpY(self.x, temp, idx, 0.75 * F, side='right')
                 if hwhm2 == 0.0 and abs(temp[idx + 1] / F) < 0.5:
@@ -132,19 +124,25 @@ class line_gauss_guess(spectra.spectrum):
             hwqm2 = abs(hwqm2 - m)
             hw3qm1 = abs(hw3qm1 - m)
             hw3qm2 = abs(hw3qm2 - m)
+            logger.debug("Width estimates H: (%f %f) Q: (%f %f) 3: (%f %f)" %
+			 (hwhm1, hwhm2, hwqm1, hwqm2, hw3qm1, hw3qm2))
 
-#            print("H: (%f %f) Q: (%f %f) 3: (%f %f)" % (hwhm1, hwhm2, hwqm1, hwqm2, hw3qm1, hw3qm2))
             # sigma
             if (hwhm1 == 0.0 and hwhm2 == 0.0):
                 sigma = (hw3qm2 + hw3qm1) / 1.55223
+                logger.debug(f"Sigma from 3q: {sigma}")
             elif (hwhm1 == 0.0 or hwhm1 > 2.0 * hwhm2):
                 sigma = hwhm2 / np.sqrt(2.0 * np.log(2.0))
+                logger.debug(f"Sigma from right side HM: {sigma}")
             elif (hwhm2 == 0.0 or hwhm2 > 2.0 * hwhm1):
                 sigma = hwhm1 / np.sqrt(2.0 * np.log(2.0))
+                logger.debug(f"Sigma from left side HM: {sigma}")
             else:
                 sigma = (hwhm2 + hwhm1) / (2.0 * np.sqrt(2.0 * np.log(2.0)))
+                logger.debug(f"Sigma from balanced HM: {sigma}")
             if sigma == 0.0:
                 sigma = self.x[center + 1] - self.x[center]
+                logger.debug(f"Sigma from spacing: {sigma}")
 
             # flux
             ### CZW: I think this correction fixes the sigma factor commented out.
@@ -157,13 +155,12 @@ class line_gauss_guess(spectra.spectrum):
                 sigma = 1e-6
 
             F = F * np.exp(0.5 * ((m - self.x[center])/sigma)**2)
-            F = -1.0 * F # * (sigma * np.sqrt(2.0 * np.pi))
+            F = -1.0 * F
             if abs(F) > 1e3:
                 F = temp[center]
 
             # eta
             line.Q = np.array([m, sigma, F])
-            #            if self.nparm >= 4:
             if (hw3qm2 + hw3qm1) == 0:
                 hw3qm2 = 1e-3;
             peakiness = (hwhm2 + hwhm1) / (hw3qm2 + hw3qm1)
@@ -173,13 +170,10 @@ class line_gauss_guess(spectra.spectrum):
                 eta = -18.7118 + 11.9942 * peakiness
             if eta < 0.0:
                 eta = 0.0
-
             np.append(line.Q, eta)
 
-
             line.pQ = line.Q
-            #            print("    %s" % line.Q)
             for dx in range(start, end):
                 self.lines[dx] = self.lines[dx] - P.eval(self.x[dx], line.Q)
-#            print(line.pQ)
-#            print(center, F, temp[center], self.lines[center] - self.continuum[center])
+            logger.debug(f"End: {line}")
+
