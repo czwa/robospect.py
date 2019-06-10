@@ -62,7 +62,6 @@ def read_ascii_linelist(filename, lines=None):
                 lines.append(new_line)
 
     lines.sort(key=RS.sortLines)
-
     return(lines)
 
 
@@ -99,7 +98,6 @@ def read_ascii_spectrum(filename, spectrum=None):
     spectrum model.
 
     """
-
     index = 0
     if filename is None:
         raise RuntimeError("No spectrum filename specified.")

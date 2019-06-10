@@ -74,7 +74,7 @@ class line_gauss_guess(spectra.spectrum):
             ##   * searchsorted isn't quite as good as I want, but I think this resolves the issue now.
             ##   * the inputs to _centroid wasn't including the right-most pixel.  fixed?
             ##   * the off-by-one issue hits the F-calculation as well.
-            if line.x0 < self.x[0] or line.x0 > self.x[-1]:
+            if line.x0 < self.min() or line.x0 > self.max():
                 continue
 
             center= np.searchsorted(self.x, line.x0, side='left')
@@ -84,6 +84,7 @@ class line_gauss_guess(spectra.spectrum):
             start = np.searchsorted(self.x, line.x0 - self.range, side='left')
             end   = np.searchsorted(self.x, line.x0 + self.range, side='right')
             logger.debug("%d %d => %f %f" % (start, end, self.x[start], self.x[end]))
+
             # mean
             centroidRange = 1
             m = self._centroid(self.x[center - centroidRange:center + centroidRange + 1],
@@ -91,12 +92,13 @@ class line_gauss_guess(spectra.spectrum):
             if m is None:
                 m = self.x[center]
             logger.debug("%f %f %f %d" % (line.x0, m, 1.0, center))
+
+	    # Initial flux = flux at line center.
             F = temp[center]
-
             logger.debug("%f %f [%f %f %f] %d" % (line.x0, m, F, temp[center - 1], temp[center + 1], center))
-            ## CZW: ok?
 
-            ## This is truncating the two sides unevenly, I think.  This leads to sigma differences, which are the issue.
+            ## This is truncating the two sides unevenly, I think,
+            ## which to sigma differences, which are the issue.
             hwhm1, hwqm1, hw3qm1 = (0.0, 0.0, 0.0)
             for idx in range(center, start, -1):
                 if hw3qm1 == 0.0 and abs(temp[idx - 1] / F) < 0.75:
@@ -122,19 +124,25 @@ class line_gauss_guess(spectra.spectrum):
             hwqm2 = abs(hwqm2 - m)
             hw3qm1 = abs(hw3qm1 - m)
             hw3qm2 = abs(hw3qm2 - m)
+            logger.debug("Width estimates H: (%f %f) Q: (%f %f) 3: (%f %f)" %
+			 (hwhm1, hwhm2, hwqm1, hwqm2, hw3qm1, hw3qm2))
 
-            logger.debug("H: (%f %f) Q: (%f %f) 3: (%f %f)" % (hwhm1, hwhm2, hwqm1, hwqm2, hw3qm1, hw3qm2))
             # sigma
             if (hwhm1 == 0.0 and hwhm2 == 0.0):
                 sigma = (hw3qm2 + hw3qm1) / 1.55223
+                logger.debug(f"Sigma from 3q: {sigma}")
             elif (hwhm1 == 0.0 or hwhm1 > 2.0 * hwhm2):
                 sigma = hwhm2 / np.sqrt(2.0 * np.log(2.0))
+                logger.debug(f"Sigma from right side HM: {sigma}")
             elif (hwhm2 == 0.0 or hwhm2 > 2.0 * hwhm1):
                 sigma = hwhm1 / np.sqrt(2.0 * np.log(2.0))
+                logger.debug(f"Sigma from left side HM: {sigma}")
             else:
                 sigma = (hwhm2 + hwhm1) / (2.0 * np.sqrt(2.0 * np.log(2.0)))
+                logger.debug(f"Sigma from balanced HM: {sigma}")
             if sigma == 0.0:
                 sigma = self.x[center + 1] - self.x[center]
+                logger.debug(f"Sigma from spacing: {sigma}")
 
             # flux
             ### CZW: I think this correction fixes the sigma factor commented out.
@@ -162,7 +170,6 @@ class line_gauss_guess(spectra.spectrum):
                 eta = -18.7118 + 11.9942 * peakiness
             if eta < 0.0:
                 eta = 0.0
-
             np.append(line.Q, eta)
 
             line.pQ = line.Q

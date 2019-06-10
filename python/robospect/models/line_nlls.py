@@ -58,6 +58,9 @@ class line_nlls(spectra.spectrum):
             Y = self.y[start:end] - self.continuum[start:end]
             E = self.error[start:end]
 
+            for flag in ("FIT_FAIL", "FIT_CHISQ", "FIT_DELTA", "FIT_BOUND"):
+                line.flags.unset(flag)
+
             try :
                 optimizeResult = spO.curve_fit(self.profile.fO, np.array(T), np.array(Y),
                                                p0=np.array(line.Q),
@@ -66,8 +69,6 @@ class line_nlls(spectra.spectrum):
                 #                              jac=self.profile.dfO)
 
                 # ChiSq check should be done in line_update.
-                for flag in ("FIT_FAIL", "FIT_CHISQ", "FIT_DELTA", "FIT_BOUND"):
-                    line.flags.unset(flag)
 
                 line.Q = optimizeResult[0]
                 line.dQ = np.sqrt(np.diagonal(optimizeResult[1]))
