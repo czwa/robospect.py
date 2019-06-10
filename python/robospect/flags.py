@@ -75,10 +75,31 @@ class Flags():
         else:
             raise RuntimeError(f"Unknown flag string: {flagString}")
 
-    def reset(self):
+    def string_to_reset_value(self, flagList=None):
+        """Convert a list of flag names to the decimal value of the inverse of
+        the union.
+
+        Parameters
+        ----------
+        flagList : `list` of `str
+            List of flags to convert.
+
+        Returns
+        -------
+        value : `int`
+            Requested inverse value.
+        """
+        value = 0
+        if isinstance(flagList, list) is True and len(flagList) is not None:
+            for bit in [self.string_to_value(name) for name in flagList]:
+                value |= bit
+        return ~value
+
+    def reset(self, flagList=None):
+
         """Reset this flag to value zero.
         """
-        self.value = 0
+        return self.string_to_reset_value(flagList)
 
     def set(self, flagString=None):
         """Set a the bitmask associated with a given flag.
