@@ -47,6 +47,7 @@ class line():
     pQ = []
 
     chi = 0.0
+    R = 0.0
     Niter = -1
 
     comment = ""

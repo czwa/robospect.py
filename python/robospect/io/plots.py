@@ -94,7 +94,6 @@ def plot_lines(spectrum, width=5.0, all=False, output=None):
     np.set_printoptions(precision=2)
     plotN = 1
     with PdfPages(output) as pdf:
-        figs = plt.figure()
         fig = plt.figure(figsize=(8, 10))
         plt.rcParams.update({'font.size': 8})
         plt.ticklabel_format(style='plain', useOffset=False)
@@ -106,11 +105,11 @@ def plot_lines(spectrum, width=5.0, all=False, output=None):
                     continue
 
                 print(f"{l}")
-                if len(l.Q) > 2:
+                if len(l.Q) > 2 and l.Q[1] > 0 and l.Q[1] < 100:
                     min = l.x0 - width * l.Q[1]
                     max = l.x0 + width * l.Q[1]
                 else:
-                    min = l.x0
+                    min = l.x0 - 0.5
                     max = l.x0 + 0.5
                 start, end = subset(spectrum.x, min, max)
 
@@ -131,7 +130,7 @@ def plot_lines(spectrum, width=5.0, all=False, output=None):
                 # plt.text(min, 0.18, f"{l.x0}")
                 #                with np.printoptions(precision=2):
 
-                plt.text(min, 0.13, f"chi^2 = {l.chi:.3f}")
+                plt.text(min, 0.13, f"chi^2 = {l.chi:.3f}  R = {l.R:.3f}  F = {l.flags}")
                 plt.text(min, 0.08, f"fit = {np.array_str(l.Q, precision=2)}")
                 plt.text(min, 0.03, f"# {l.x0} {l.comment}")
                 plt.axvline(x=l.x0, color='#FFA500', linewidth=0.1)
