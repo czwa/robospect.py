@@ -19,6 +19,7 @@
 #
 
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 from robospect.spectra import spectrum
 
@@ -68,6 +69,72 @@ def plot_spectrum(spectrum,
 
     if output is None:
         plt.show()
+    elif isinstance(output, PdfPages):
+        plt.savefig(output, format="pdf")
     else:
         plt.savefig(output)
 
+def plot_lines(spectrum, width=5.0, all=False, output=None):
+    """Plot individual lines as part of a set.
+
+    Parameters
+    ----------
+    spectrum : `robospect.spectra.spectrum`
+        Data to plot.
+    width : `float`, optional
+        Number of line sigmas to plot on either side.
+    all : `bool`, optional
+        Plot all lines, or just those that were supplied?
+    output : `str`, optional
+        Output filename.
+    """
+    if output is None:
+        pass
+
+    with PdfPages(output) as pdf:
+        for l in spectrum.L:
+            if all is True or l.flags.test("SUPPLIED"):
+                if l.flags.test("FIT_FAIL"):
+                    continue
+                if l.x0 < spectrum.min() or l.x0 > spectrum.max():
+                    continue
+
+                print(f"{l}")
+                if len(l.Q) > 2:
+                    min = l.x0 - width * l.Q[1]
+                    max = l.x0 + width * l.Q[1]
+                else:
+                    min = l.x0
+                    max = l.x0 + 0.5
+                start, end = subset(spectrum.x, min, max)
+
+                X = spectrum.x[start:end]
+                Y = spectrum.y[start:end]
+                C = spectrum.continuum[start:end]
+                L = spectrum.lines[start:end]
+                E = spectrum.error[start:end]
+
+                plt.xlim(min, max)
+                plt.ylim(0.0, 1.1)
+                plt.xlabel("wavelength")
+                plt.ylabel("flux")
+
+                plt.text(min, 0.20, f"{l.x0}")
+                plt.text(min, 0.15, f"chi^2 = {l.chi:.3f}")
+                plt.text(min, 0.10, f"fit = {l.Q}")
+                plt.text(min, 0.05, f"## {l.comment}")
+                plt.axvline(x=l.x0, color='#FFA500', linewidth=0.1)
+                plt.plot(X, Y, '+-b')
+                plt.plot(X, C, color='r')
+                plt.plot(X, C + L, color='g')
+                plt.plot(X, C + E, color='c')
+                plt.plot(X, C - E, color='c')
+                pdf.savefig()
+
+def subset(X, xl, xr):
+    start = np.searchsorted(X, xl, side='left')
+    end   = np.searchsorted(X, xr, side='right')
+
+    if start == end:
+        end += 1
+    return start, end
