@@ -100,6 +100,12 @@ class Flags():
         else:
             raise RuntimeError(f"Unknown flag string: {flagString}")
 
+    def test(self, flagString=None):
+        if self.value & self.string_to_value(flagString):
+            return True
+        else:
+            return False
+
     def string_to_reset_value(self, flagList=None):
         """Convert a list of flag names to the decimal value of the inverse of
         the union.
