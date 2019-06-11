@@ -161,15 +161,33 @@ class spectrum(object):
         max_flux : `float`
         chi_window : `float`
 
+        Flags
+        -----
+        FIT_CHISQ :
+            Set if chi^2 does not improve with addition of line.
         """
         position_error = kwargs.pop("position_error", 5.0)
         max_sigma = kwargs.pop("max_sigma", 100.0)
         max_flux = kwargs.pop("max_flux", 2.5)
+        chi_window = kwargs.pop("chi_window", 10.0)
 
         self.lines = np.zeros_like(self.x)
         for line in self.L:
-            start = np.searchsorted(self.x, line.x0 - 100.0, side='left')
-            end   = np.searchsorted(self.x, line.x0 + 100.0, side='right')
-            for dx in range(start, end):
-                self.lines[dx] = self.lines[dx] + self.profile.f(self.x[dx], line.Q)
+            line.flags.unset(flagString="FIT_CHISQ")
 
+            start = np.searchsorted(self.x, line.x0 - chi_window, side='left')
+            end   = np.searchsorted(self.x, line.x0 + chi_window, side='right')
+
+            F = self.profile.f(self.x[start:end+1], line.Q)
+            M = self.y[start:end+1] - (self.continuum[start:end+1] +
+                                       self.lines[start:end+1])
+            E = self.error[start:end+1]
+            chiPre = np.sum(M / E)**2
+            M = M - F
+            chiPost = np.sum(M / E)**2
+            if chiPost < chiPre:
+                self.lines[start:end+1] = self.lines[start:end+1] + F
+                line.R = chiPost / (end + 1 - start)
+            else:
+                line.flags.set(flagString="FIT_CHISQ")
+                line.R = chiPre / (end + 1 - start)
