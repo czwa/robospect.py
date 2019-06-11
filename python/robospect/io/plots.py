@@ -91,7 +91,13 @@ def plot_lines(spectrum, width=5.0, all=False, output=None):
     if output is None:
         pass
 
+    np.set_printoptions(precision=2)
+    plotN = 1
     with PdfPages(output) as pdf:
+        figs = plt.figure()
+        fig = plt.figure(figsize=(8, 10))
+        plt.rcParams.update({'font.size': 8})
+        plt.ticklabel_format(style='plain', useOffset=False)
         for l in spectrum.L:
             if all is True or l.flags.test("SUPPLIED"):
                 if l.flags.test("FIT_FAIL"):
@@ -114,22 +120,32 @@ def plot_lines(spectrum, width=5.0, all=False, output=None):
                 L = spectrum.lines[start:end]
                 E = spectrum.error[start:end]
 
+                subplotIndex = plotN % 6
+                if subplotIndex == 0:
+                    subplotIndex = 6
+                plt.subplot(3, 2, subplotIndex)
                 plt.xlim(min, max)
                 plt.ylim(0.0, 1.1)
                 plt.xlabel("wavelength")
                 plt.ylabel("flux")
+                # plt.text(min, 0.18, f"{l.x0}")
+                #                with np.printoptions(precision=2):
 
-                plt.text(min, 0.20, f"{l.x0}")
-                plt.text(min, 0.15, f"chi^2 = {l.chi:.3f}")
-                plt.text(min, 0.10, f"fit = {l.Q}")
-                plt.text(min, 0.05, f"## {l.comment}")
+                plt.text(min, 0.13, f"chi^2 = {l.chi:.3f}")
+                plt.text(min, 0.08, f"fit = {np.array_str(l.Q, precision=2)}")
+                plt.text(min, 0.03, f"# {l.x0} {l.comment}")
                 plt.axvline(x=l.x0, color='#FFA500', linewidth=0.1)
                 plt.plot(X, Y, '+-b')
                 plt.plot(X, C, color='r')
                 plt.plot(X, C + L, color='g')
                 plt.plot(X, C + E, color='c')
                 plt.plot(X, C - E, color='c')
-                pdf.savefig()
+
+                plotN += 1
+                if plotN % 6 == 0:
+                    pdf.savefig(fig)
+
+
 
 def subset(X, xl, xr):
     start = np.searchsorted(X, xl, side='left')
