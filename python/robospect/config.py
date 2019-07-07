@@ -96,7 +96,7 @@ class Config:
         if self.initial_model is None:
             self.initial_model = self.rs_models["line"]["pre"]
         if self.line_model is None:
-            self.line_model = self.rs_models["line"]["nlls"]
+            self.line_model = self.rs_models["line"]["mp_nlls"]
 
         # Handle fitting arguments
         fittingArgs = self.arg_dict["fitting"]
