@@ -25,10 +25,10 @@ import numpy as np
 from robospect import spectra
 from robospect.models.profile_shapes import profileFromName
 
-__all__ = ['line_best']
+__all__ = ['line_mp_nlls']
 
-class line_best(spectra.spectrum):
-    modelName = 'best'
+class line_mp_nlls(spectra.spectrum):
+    modelName = 'mp_nlls'
     modelPhase = 'line'
 
     def __init__(self, *args, **kwargs):
@@ -41,21 +41,9 @@ class line_best(spectra.spectrum):
         self.profile = profileFromName(self.profileName)
         self.nParallel = kwargs.pop('nProc', 12)
 
-    def _fit_N_simul(self, X, Q):
-        F = np.zeros_like(X)
-
-        if len(Q) % self.profile.Nparm != 0:
-            raise RuntimeError("Number of parameters is not integer multiple of profile Nparm.")
-
-        for idx in range(0, len(Q) // self.profile.Nparm):
-            q = Q[idx * self.profile.Nparm:(self.profile.Nparm) + idx * self.profile.Nparm]
-            F += np.array(self.f(np.array(X), np.array(q)))
-
-        return F
-
     def _fit_one(self, Q, T, Y, E):
         try:
-            result = spO.curve_fit(self._fit_N_simul, np.array(T), np.array(Y),
+            result = spO.curve_fit(self.profile.fO, np.array(T), np.array(Y),
                                p0=np.array(Q),
                                sigma=np.array(E), absolute_sigma=True,
                                check_finite=True, method='lm')
@@ -129,6 +117,7 @@ class line_best(spectra.spectrum):
                     logger.debug(f"Fit: {l.chi:.3f} {l}")
 
 
+
 def indep_fit_one(Q, T, Y, E, fO):
     try:
         result = spO.curve_fit(fO, np.array(T), np.array(Y),
@@ -141,3 +130,5 @@ def indep_fit_one(Q, T, Y, E, fO):
         print(e)
         flag = "FIT_FAIL"
         return flag, Q, 0.1 * Q, 10000.0
+
+

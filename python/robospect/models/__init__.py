@@ -20,8 +20,10 @@
 
 __all__ = ['line_gauss_guess',
            'line_nlls',
+           'line_mp_nlls',
            'line_null',
            'line_best',
+           'deblend_group',
            'detection_naive',
            'detection_null',
            'continuum_boxcar',
@@ -37,7 +39,10 @@ from .profile_shapes import *
 
 from .line_gauss_guess import *
 from .line_nlls import *
+from .line_mp_nlls import *
 from .line_best import *
+
+from .deblend_group import *
 
 from .continuum_boxcar import *
 from .continuum_parallel_boxcar import *

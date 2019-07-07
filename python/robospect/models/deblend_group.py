@@ -23,10 +23,10 @@ import numpy as np
 from robospect import spectra
 from robospect.models.profile_shapes import profileFromName
 
-__all__ = ['deblend_nlls']
+__all__ = ['deblend_group']
 
-class deblend_nlls(spectra.spectrum):
-    modelName = 'nlls'
+class deblend_group(spectra.spectrum):
+    modelName = 'group'
     modelPhase = 'deblend'
 
     def __init__(self, *args, **kwargs):
@@ -63,7 +63,7 @@ class deblend_nlls(spectra.spectrum):
 
         for b, xMin, xMax in groupEndPoints:
             lines = filter(lambda l:l.blend == b, self.L)
-            self.fit_lines_set(lines, xMin, xMax)
+
 
     def set_blend_groups(self, **kwargs):
         def minCalc(i):
@@ -97,50 +97,3 @@ class deblend_nlls(spectra.spectrum):
                     group_endPoints.append( (current_group, min_edge, max_edge) )
                     current_group += 1
         return group_endPoints
-
-    def fit_lines_set(self, lineList, xMin, xMax):
-        """Use scipy.optimize to fit a non-linear least squares model.
-        Flags
-        -----
-        FIT_BOUND :
-            Set if the line to measure falls outside the bounds of the spectrum.
-        FIT_FAIL :
-            Set if the curve fit code raises an error that is ignored.
-        """
-        self._configLine(**kwargs)
-        logger = logging.getLogger(__name__)
-        logger.setLevel(self.verbose)
-
-        start = np.searchsorted(self.x, xMin, side='left')
-        end   = np.searchsorted(self.x, xMax, side='right')
-
-        while (end - start < 5):
-            end = end + 1
-            start = start - 1
-
-        T = self.x[start:end]
-        Y = self.y[start:end] - self.continuum[start:end]
-        E = self.error[start:end]
-
-        for line in lineList:
-            line.flags.reset(flagList=["FIT_BOUND", "FIT_FAIL"])
-
-        ## CZW: Pack current values into single list.
-        ## CZW: Update profile function for multiple values.
-        try :
-            optimizeResult = spO.curve_fit(self.profile.fO, np.array(T), np.array(Y),
-                                           p0=np.array(line.Q),
-                                           sigma=np.array(E), absolute_sigma=True,
-                                           check_finite=True, method='lm')
-            #                              jac=self.profile.dfO)
-
-            # ChiSq check should be done in line_update.
-            ## CZW: Unpack values into line profile parameters.
-            # line.Q = optimizeResult[0]
-            # line.dQ = np.sqrt(np.diagonal(optimizeResult[1]))
-            # line.chi = np.trace(optimizeResult[1])
-        except (RuntimeError, TypeError):
-            for line in lineList:
-                line.flags.set("FIT_FAIL")
-
-        logger.debug(f"Fit: {line.chi:.3f} {line}")
