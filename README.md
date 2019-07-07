@@ -1,26 +1,31 @@
 # robospect.py
-Python port of robospect (Waters & Hollek, 2013, PASP, 125, 1164).
+Python port of ROBOSPECT [(Waters & Hollek, 2013, PASP, 125, 1164)](https://www.jstor.org/stable/10.1086/673311).
 
-The current working codebase is on the master branch.  Full
-documentation is forthcoming, but a few example run commands are
-listed below.
+This program was designed to accurately measure the equivalent widths
+of line features in stellar spectra in an automated fashion, removing
+the manual decisions necessary in previous methods.  This updated port
+of the program builds upon a modern python foundation to improve the
+usability and extensibility of the algorithms used in the original
+version.
+
+
+## Installation
+
+We recommend using the most recent release tagged version of the code
+from the public github repository: https://github.com/czwa/robospect.py
 
 To install the package:
 
       > python3 ./setup.py install [--user]
 
-or
-
-      > python3 ./setup.py develop [--user]
-
-depending on if code development will be performed.
-
-Tests are not currently complete, but will check that your environment
-has robospect configured correctly.  These can be accessed via:
+The current set of unit tests will confirm that the code is operational:
 
       > python3 ./setup.py test
 
-Example commands:
+## Running
+
+A future release will ensure all options from the previous version of
+ROBOSPECT are functional.  The examples below list some common calls.
 
       > rSpect.py -i 1 ./spectra/input_spectrum.dat -P /tmp/output_base_name
 
