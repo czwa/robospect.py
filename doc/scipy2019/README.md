@@ -61,8 +61,3 @@ results even when the signal-to-noise ratio was less than optimal.
   - Python will allow them to tie their measurement/analysis codes into
     a single data reduction pipeline.
 
-
-[//] <> (Figures to add:)
-[//] <> (* QR code linking to this document)
-[//] <> (* code flow chart?)
-
