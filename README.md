@@ -16,7 +16,7 @@ from the public github repository: https://github.com/czwa/robospect.py
 
 To install the package:
 
-      > python3 ./setup.py install [--user]
+      > python3 ./setup.py install [--user] [--local-snapshots-ok]
 
 The current set of unit tests will confirm that the code is operational:
 
