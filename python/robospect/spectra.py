@@ -46,11 +46,12 @@ class spectrum(object):
         self.error = np.zeros(len(self.x))
 
         self.log = logging.getLogger("robospect.spectra")
+        self.log.debug("Input Kwargs: %s" % (kwargs))
         # Things like general tolerances probably should be here too.
-        fitting_parameters = kwargs.setdefault('fitting', None)
-        if fitting_parameters is not None:
-            self.iteration = fitting_parameters.setdefault('iteration', 0)
-            self.max_iteration = fitting_parameters.setdefault('max_iterations', 1)
+        self.fitting_parameters = kwargs.get('fitting', None)
+        if self.fitting_parameters is not None:
+            self.iteration = self.fitting_parameters.setdefault('iteration', 0)
+            self.max_iteration = self.fitting_parameters.setdefault('max_iterations', 1)
         else:
             self.iteration = 0
             self.max_iteration = 1
@@ -70,8 +71,10 @@ class spectrum(object):
     def fit(self, **kwargs):
         r"""Method to perform a single fitting iteration.
         """
-        iteration = kwargs.setdefault('iteration', self.iteration)
-        max_iteration = kwargs.setdefault('max_iteration', self.max_iteration)
+        if not kwargs:
+            kwargs = self.fitting_parameters
+        iteration = kwargs.get('iteration', self.iteration)
+        max_iteration = kwargs.get('max_iteration', self.max_iteration)
 
         if len(self.L) > 0:
             self.fit_continuum(**kwargs)
@@ -166,10 +169,13 @@ class spectrum(object):
         FIT_CHISQ :
             Set if chi^2 does not improve with addition of line.
         """
-        position_error = kwargs.pop("position_error", 5.0)
-        max_sigma = kwargs.pop("max_sigma", 100.0)
-        max_flux = kwargs.pop("max_flux", 2.5)
-        chi_window = kwargs.pop("chi_window", 10.0)
+        if not kwargs:
+            kwargs = self.fitting_parameters
+        self.log.debug(f"{kwargs}, {self.fitting_parameters}")
+        position_error = float(kwargs.get("position_error", 5.0))
+        max_sigma = float(kwargs.get("max_sigma", 100.0))
+        max_flux = float(kwargs.get("max_flux", 2.5))
+        chi_window = float(kwargs.get("chi_window", 10.0))
 
         self.lines = np.zeros_like(self.x)
         for line in self.L:
@@ -189,5 +195,6 @@ class spectrum(object):
                 self.lines[start:end+1] = self.lines[start:end+1] + F
                 line.R = chiPost / (end + 1 - start)
             else:
+                self.log.debug(f"Bad chi^2: x0: {line.x0} pre: {chiPre} post: {chiPost} chi_window: {chi_window}")
                 line.flags.set(flagString="FIT_CHISQ")
                 line.R = chiPre / (end + 1 - start)
