@@ -48,7 +48,9 @@ class spectrum(object):
         self.log = logging.getLogger("robospect.spectra")
         self.log.debug("Input Kwargs: %s" % (kwargs))
         # Things like general tolerances probably should be here too.
-        self.fitting_parameters = kwargs.get('fitting', None)
+        self.fitting_parameters = dict()
+        if kwargs:
+            self.fitting_parameters = kwargs.get('fitting', dict())
         if self.fitting_parameters is not None:
             self.iteration = self.fitting_parameters.setdefault('iteration', 0)
             self.max_iteration = self.fitting_parameters.setdefault('max_iterations', 1)
