@@ -91,7 +91,7 @@ class line_gauss_guess(spectra.spectrum):
 
             start = np.searchsorted(self.x, line.x0 - self.range, side='left')
             end   = np.searchsorted(self.x, line.x0 + self.range, side='right')
-            logger.debug("%d %d => %f %f" % (start, end, self.x[start], self.x[end]))
+            logger.debug("Centroid search: %d %d => %f %f" % (start, end, self.x[start], self.x[end]))
 
             # mean
             centroidRange = 1
@@ -99,11 +99,13 @@ class line_gauss_guess(spectra.spectrum):
                                temp[center - centroidRange:center + centroidRange + 1])
             if m is None:
                 m = self.x[center]
-            logger.debug("%f %f %f %d" % (line.x0, m, 1.0, center))
+            logger.debug("Mean value: %f %f %f %d" % (line.x0, m, self.x[center], center))
 
 	    # Initial flux = flux at line center.
+            # CZW: issue-19: why is this off by one?
+            center = center - 1
             F = temp[center]
-            logger.debug("%f %f [%f %f %f] %d" % (line.x0, m, F, temp[center - 1], temp[center + 1], center))
+            logger.debug("Initial flux: x0:%f m: %f F: %f +/-1:[%f %f] mIDX:%d" % (line.x0, m, F, temp[center - 1], temp[center + 1], center))
 
             ## This is truncating the two sides unevenly, I think,
             ## which to sigma differences, which are the issue.
@@ -126,6 +128,7 @@ class line_gauss_guess(spectra.spectrum):
                 if hwqm2 == 0.0 and abs(temp[idx + 1] / F) < 0.25:
                     hwqm2 = self._interpY(self.x, temp, idx, 0.5 * F, side='right')
                     break
+
             hwhm1 = abs(hwhm1 - m)
             hwhm2 = abs(hwhm2 - m)
             hwqm1 = abs(hwqm1 - m)
