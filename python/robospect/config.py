@@ -80,7 +80,7 @@ class Config:
 
         # Model selection setting
         for modelPhase in self.model_phases:
-            modelName = self.arg_dict[modelPhase].pop("name", None)
+            modelName = self.arg_dict[modelPhase].get("name", None)
             if modelName is None:
                 setattr(self, f"{modelPhase}_model", None)
             else:

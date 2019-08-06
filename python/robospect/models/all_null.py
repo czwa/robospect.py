@@ -31,8 +31,11 @@ class continuum_null(spectra.spectrum):
     modelPhase = 'continuum'
 
     def __init__(self, *args, **kwargs):
+        self.modelName = 'null'
+        self.modelPhase = 'continuum'
+
         super().__init__(*args, **kwargs)
-        config = kwargs.pop(self.modelPhase, dict())
+        config = kwargs.get(self.modelPhase, dict())
 
     def fit_continuum(self, **kwargs):
         logger = logging.getLogger(__name__)
@@ -46,8 +49,10 @@ class error_null(spectra.spectrum):
     modelPhase = 'noise'
 
     def __init__(self, *args, **kwargs):
+        self.modelName = 'null'
+        self.modelPhase = 'noise'
         super().__init__(*args, **kwargs)
-        config = kwargs.pop(self.modelPhase, dict())
+        config = kwargs.get(self.modelPhase, dict())
 
     def fit_error(self, **kwargs):
         logger = logging.getLogger(__name__)
@@ -61,8 +66,10 @@ class detection_null(spectra.spectrum):
     modelPhase = 'detection'
 
     def __init__(self, *args, **kwargs):
+        self.modelName = 'null'
+        self.modelPhase = 'detection'
         super().__init__(*args, **kwargs)
-        config = kwargs.pop(self.modelPhase, dict())
+        config = kwargs.get(self.modelPhase, dict())
 
     def fit_detection(self, **kwargs):
         logger = logging.getLogger(__name__)
@@ -76,8 +83,10 @@ class initial_null(spectra.spectrum):
     modelPhase = 'initial'
 
     def __init__(self, *args, **kwargs):
+        self.modelName = 'null'
+        self.modelPhase = 'initial'
         super().__init__(*args, **kwargs)
-        config = kwargs.pop(self.modelPhase, dict())
+        config = kwargs.get(self.modelPhase, dict())
 
     def fit_initial(self, **kwargs):
         logger = logging.getLogger(__name__)
@@ -93,12 +102,17 @@ class line_null(spectra.spectrum):
     modelPhase = 'line'
 
     def __init__(self, *args, **kwargs):
+        self.modelName = 'null'
+        self.modelPhase = 'line'
+
+        self.profileName = 'gauss'
         super().__init__(*args, **kwargs)
-        config = kwargs.pop(self.modelPhase, dict())
+        config = kwargs.get(self.modelPhase, dict())
         self._configLine(**kwargs)
 
     def _configLine(self, **kwargs):
-        self.profileName = kwargs.pop('profileName', 'gauss')
+        if 'profileName' in kwargs:
+            self.profileName = kwargs.get('profileName')
         self.profile = profileFromName(self.profileName)
 
     def fit_lines(self, **kwargs):

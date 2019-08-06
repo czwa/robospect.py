@@ -32,12 +32,19 @@ class line_gauss_guess(spectra.spectrum):
     modelParamN = 3
 
     def __init__(self, *args, **kwargs):
+        self.confName = 'pre'
+        self.confPhase = 'initial'
+        self.modelParamN = 3
+
+        self.range = 1.0
+
         super().__init__(*args, **kwargs)
-        self.config = kwargs.pop(self.modelPhase, dict())
+        self.config = kwargs.get(str(self.confPhase), dict())
         self._configInitial(**self.config)
 
     def _configInitial(self, **kwargs):
-        self.range = kwargs.pop('range', 1.00)
+        if 'range' in kwargs:
+            self.range = float(kwargs.get('range'))
 
     def _centroid(self, X, Y):
         V = 0.0
@@ -68,6 +75,7 @@ class line_gauss_guess(spectra.spectrum):
         self.lines = np.copy(self.continuum)
         P = models.gaussian()
         temp = (self.y - self.continuum)
+
         for line in self.L:
             ## 2019-05-23 CZW:
             ## The issues here:

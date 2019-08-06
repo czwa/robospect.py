@@ -32,12 +32,17 @@ class detection_naive(spectra.spectrum):
     modelPhase = 'detection'
 
     def __init__(self, *args, **kwargs):
+        self.modelName = 'naive'
+        self.modelPhase = 'detection'
+
+        self.threshold = 3.0
         super().__init__(*args, **kwargs)
-        config = kwargs.pop(self.modelPhase, dict())
+        config = kwargs.get(self.modelPhase, dict())
         self._configDetection(**config)
 
     def _configDetection(self, **kwargs):
-        self.threshold = kwargs.pop('threshold', 3.0)
+        if 'threshold' in kwargs:
+            self.threshold = float(kwargs.get('threshold', 3.0))
 
     def peak_index_from_wavelength(self, wavelength, SN, search_width=5):
         index_guess = np.searchsorted(self.x, wavelength, side='left')

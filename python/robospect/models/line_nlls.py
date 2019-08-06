@@ -30,12 +30,18 @@ class line_nlls(spectra.spectrum):
     modelPhase = 'line'
 
     def __init__(self, *args, **kwargs):
+        self.modelName = 'nlls'
+        self.modelPhase = 'line'
+
+        self.profileName = 'gauss'
+
         super().__init__(*args, **kwargs)
-        config = kwargs.pop(self.modelPhase, dict())
+        config = kwargs.get(self.modelPhase, dict())
         self._configLine(**config)
 
     def _configLine(self, **kwargs):
-        self.profileName = kwargs.pop('profileName', 'gauss')
+        if 'profileName' in kwargs:
+            self.profileName = kwargs.get('profileName', 'gauss')
         self.profile = profileFromName(self.profileName)
 
     def fit_lines(self, **kwargs):
