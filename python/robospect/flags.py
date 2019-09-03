@@ -37,6 +37,7 @@ class Flags():
                'FIT_DELTA': (0x04, "Large parameter shift between line prior and fit.  Line ignored."),
                'FIT_BOUND': (0x08, "Line parameters exceed allowed bounds.  Line ignored."),
                'FIT_ERROR_ESTIMATED': (0x10, "No error calculated.  Estimated at 10%"),
+               'ALT_CHISQ': (0x20, "Chi^2 did not improve with inclusion of alternate line model.")
                }
 
     def __init__(self):

@@ -81,8 +81,9 @@ class spectrum(object):
         if len(self.L) > 0:
             self.fit_continuum(**kwargs)
             self.fit_error(**kwargs)
+
             self.fit_initial(**kwargs)
-            self.line_update(**kwargs)
+            self.line_update(**kwargs, alternate=True)
 
         while iteration < max_iteration:
             self.log.info("## Iteration %d / %d   %d lines" %
@@ -94,10 +95,10 @@ class spectrum(object):
             self.fit_detection(**kwargs)
 
             self.fit_initial(**kwargs)
-            self.line_update(**kwargs)
+            self.line_update(**kwargs, alternate=True)
 
             self.fit_lines(**kwargs)
-            self.line_update(**kwargs)
+            self.line_update(**kwargs, alternate=False)
 
             self.fit_deblend(**kwargs)
             self.fit_repair(**kwargs)
@@ -171,22 +172,33 @@ class spectrum(object):
         FIT_CHISQ :
             Set if chi^2 does not improve with addition of line.
         """
-        if not kwargs:
-            kwargs = self.fitting_parameters
+
         self.log.debug(f"{kwargs}, {self.fitting_parameters}")
+        kwargs.update(self.fitting_parameters)
+
         position_error = float(kwargs.get("position_error", 5.0))
         max_sigma = float(kwargs.get("max_sigma", 100.0))
         max_flux = float(kwargs.get("max_flux", 2.5))
         chi_window = float(kwargs.get("chi_window", 10.0))
+        use_alternate = kwargs.get("alternate", False)
+
+        if use_alternate is False:
+            flagString = 'FIT_CHISQ'
+        else:
+            flagString = 'ALT_CHISQ'
 
         self.lines = np.zeros_like(self.x)
         for line in self.L:
-            line.flags.unset(flagString="FIT_CHISQ")
+            line.flags.unset(flagString=flagString)
 
             start = np.searchsorted(self.x, line.x0 - chi_window, side='left')
             end   = np.searchsorted(self.x, line.x0 + chi_window, side='right')
 
-            F = self.profile.f(self.x[start:end+1], line.Q)
+            F = 0.0
+            if use_alternate is False:
+                F = self.profile.f(self.x[start:end+1], line.Q)
+            else:
+                F = self.profile.f(self.x[start:end+1], line.pQ)
             M = self.y[start:end+1] - (self.continuum[start:end+1] +
                                        self.lines[start:end+1])
             E = self.error[start:end+1]
@@ -194,9 +206,10 @@ class spectrum(object):
             M = M - F
             chiPost = np.sum(M / E)**2
             if chiPost < chiPre:
+                self.log.debug(f"Good chi^2: x0: {line.x0} pre: {chiPre} post: {chiPost} chi_window: {chi_window} alternate_model: {use_alternate}")
                 self.lines[start:end+1] = self.lines[start:end+1] + F
                 line.R = chiPost / (end + 1 - start)
             else:
-                self.log.debug(f"Bad chi^2: x0: {line.x0} pre: {chiPre} post: {chiPost} chi_window: {chi_window}")
-                line.flags.set(flagString="FIT_CHISQ")
+                self.log.debug(f"Bad chi^2: x0: {line.x0} pre: {chiPre} post: {chiPost} chi_window: {chi_window} alternate_model: {use_alternate}")
+                line.flags.set(flagString=flagString)
                 line.R = chiPre / (end + 1 - start)
