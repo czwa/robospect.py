@@ -168,11 +168,13 @@ def write_ascii_spectrum(filename, spectrum=None):
         raise RuntimeError("No spectrum specified to print.")
     with smart_open(filename) as f:
         f.write("####### %d\n" % (len(spectrum.x)))
-        for x, y, c, e, l, l2 in zip(spectrum.x,
-                                     spectrum.y,
-                                     spectrum.continuum,
-                                     spectrum.error,
-                                     spectrum.lines,
-                                     spectrum.alternate):
+        f.write("#inputWavelength inputFlux inputErrorPlacehldr modelContinuum modelError modelLines modelAlternate\n")
+        for x, y, eP, c, e, l, l2 in zip(spectrum.x,
+                                         spectrum.y,
+                                         np.zeros_like(spectrum.x),
+                                         spectrum.continuum,
+                                         spectrum.error,
+                                         spectrum.lines,
+                                         spectrum.alternate):
             f.write("%f %f %f %f %f %f %f\n" %
-                    (x, y, 0.0, c, e, l, l2))
+                    (x, y, eP, c, e, l, l2))
