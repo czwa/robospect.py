@@ -281,8 +281,9 @@ class Config:
         io.write_ascii_catalog(outfile, spectrum.L)
         io.write_ascii_spectrum(outfile2, spectrum)
 
-        io.plots.plot_lines(spectrum, output=f"{self.path_base}.pdf",
-                            width=5.0, all=False)
+        if self.path_base is not None:
+            io.plots.plot_lines(spectrum, output=f"{self.path_base}.pdf",
+                                width=5.0, all=False)
 
     def construct_spectra_class(self, *args, **kwargs):
         r"""Construct the spectra class.
