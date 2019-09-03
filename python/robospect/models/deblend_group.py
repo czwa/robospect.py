@@ -33,7 +33,6 @@ class deblend_group(spectra.spectrum):
         self.modelName = 'group'
         self.modelPhase = 'deblend'
 
-        self.profileName = 'gauss'
         self.deblendRadius = 3.0
 
         super().__init__(*args, **kwargs)
@@ -41,11 +40,12 @@ class deblend_group(spectra.spectrum):
         self._configDeblend(**config)
 
     def _configDeblend(self, **kwargs):
-        if 'profileName' in kwargs:
+        if self.profile is None:
             self.profileName = kwargs.get('profileName', 'gauss')
+            self.profile = profileFromName(self.profileName)
         if 'deblendRadius' in kwargs:
             self.deblendRadius = float(kwargs.get('deblendRadius', 3.0))
-        self.profile = profileFromName(self.profileName)
+
 
     def fit_deblend(self, **kwargs):
         """Use scipy.optimize to fit a non-linear least squares model.

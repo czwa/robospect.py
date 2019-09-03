@@ -37,7 +37,7 @@ def plot_spectrum(spectrum,
 
     if line is not None and width is not None:
         min = spectrum.L[line].x0 - width * spectrum.L[line].Q[1]
-        min = spectrum.L[line].x0 + width * spectrum.L[line].Q[1]
+        max = spectrum.L[line].x0 + width * spectrum.L[line].Q[1]
 
     plt.xlim(min, max)
     plt.ylim(0.0, 1.1)
@@ -90,7 +90,7 @@ def plot_lines(spectrum, width=5.0, all=False, output=None):
     """
     if output is None:
         pass
-
+    all = True
     np.set_printoptions(precision=2)
     plotN = 1
     with PdfPages(output) as pdf:
@@ -99,51 +99,56 @@ def plot_lines(spectrum, width=5.0, all=False, output=None):
         plt.ticklabel_format(style='plain', useOffset=False)
         for l in spectrum.L:
             if all is True or l.flags.test("SUPPLIED"):
-                if l.flags.test("FIT_FAIL"):
-                    continue
-                if l.x0 < spectrum.min() or l.x0 > spectrum.max():
-                    continue
+#                if l.flags.test("FIT_FAIL"):
+#                    continue
+#                if l.x0 < spectrum.min() or l.x0 > spectrum.max():
+#                    continue
+                try:
+                    print(f"{l}")
+                    if len(l.Q) > 2 and l.Q[1] > 0 and l.Q[1] < 100:
+                        min = l.x0 - width * l.Q[1]
+                        max = l.x0 + width * l.Q[1]
+                    else:
+                        min = l.x0 - 20.0
+                        max = l.x0 + 20.0
+                    if max - min < spectrum.x[1] - spectrum.x[0]:
+                        min = l.x0 - 20.0
+                        max = l.x0 + 20.0
+                    start, end = subset(spectrum.x, min, max)
+                    print(l, min, max, l.Q[1], width)
+                    X = spectrum.x[start:end]
+                    Y = spectrum.y[start:end]
+                    C = spectrum.continuum[start:end]
+                    L = spectrum.lines[start:end]
+                    E = spectrum.error[start:end]
 
-                print(f"{l}")
-                if len(l.Q) > 2 and l.Q[1] > 0 and l.Q[1] < 100:
-                    min = l.x0 - width * l.Q[1]
-                    max = l.x0 + width * l.Q[1]
-                else:
-                    min = l.x0 - 0.5
-                    max = l.x0 + 0.5
-                start, end = subset(spectrum.x, min, max)
+                    subplotIndex = plotN % 6
+                    if subplotIndex == 0:
+                        subplotIndex = 6
+                    plt.subplot(3, 2, subplotIndex)
+                    plt.xlim(min, max)
+                    plt.ylim(0.0, 1.1)
+                    plt.xlabel("wavelength")
+                    plt.ylabel("flux")
+                    # plt.text(min, 0.18, f"{l.x0}")
+                    #                with np.printoptions(precision=2):
 
-                X = spectrum.x[start:end]
-                Y = spectrum.y[start:end]
-                C = spectrum.continuum[start:end]
-                L = spectrum.lines[start:end]
-                E = spectrum.error[start:end]
+                    plt.text(min, 0.13, f"chi^2 = {l.chi:.3f}  R = {l.R:.3f}  F = {l.flags}")
+                    plt.text(min, 0.08, f"fit = {np.array_str(l.Q, precision=2)}")
+                    plt.text(min, 0.03, f"# {l.x0} {l.comment}")
+                    plt.axvline(x=l.x0, color='#FFA500', linewidth=0.1)
+                    plt.plot(X, Y, '+-b')
+                    plt.plot(X, C, color='r')
+                    #                    if l.Q[1] > 1e-2:
+                    plt.plot(X, C + L, color='g')
+                    plt.plot(X, C + E, color='c')
+                    plt.plot(X, C - E, color='c')
 
-                subplotIndex = plotN % 6
-                if subplotIndex == 0:
-                    subplotIndex = 6
-                plt.subplot(3, 2, subplotIndex)
-                plt.xlim(min, max)
-                plt.ylim(0.0, 1.1)
-                plt.xlabel("wavelength")
-                plt.ylabel("flux")
-                # plt.text(min, 0.18, f"{l.x0}")
-                #                with np.printoptions(precision=2):
-
-                plt.text(min, 0.13, f"chi^2 = {l.chi:.3f}  R = {l.R:.3f}  F = {l.flags}")
-                plt.text(min, 0.08, f"fit = {np.array_str(l.Q, precision=2)}")
-                plt.text(min, 0.03, f"# {l.x0} {l.comment}")
-                plt.axvline(x=l.x0, color='#FFA500', linewidth=0.1)
-                plt.plot(X, Y, '+-b')
-                plt.plot(X, C, color='r')
-                plt.plot(X, C + L, color='g')
-                plt.plot(X, C + E, color='c')
-                plt.plot(X, C - E, color='c')
-
-                plotN += 1
-                if plotN % 6 == 0:
-                    pdf.savefig(fig)
-
+                    plotN += 1
+                    if plotN % 6 == 0:
+                        pdf.savefig(fig)
+                except:
+                    raise RuntimeError("")
 
 
 def subset(X, xl, xr):

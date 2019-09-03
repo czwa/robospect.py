@@ -35,7 +35,6 @@ class line_mp_nlls(spectra.spectrum):
         self.modelName = 'mp_nlls'
         self.modelPhase = 'line'
 
-        self.profileName = 'gauss'
         self.nParallel = 12
 
         super().__init__(*args, **kwargs)
@@ -43,13 +42,13 @@ class line_mp_nlls(spectra.spectrum):
         self._configLine(**config)
 
     def _configLine(self, **kwargs):
-        if 'profileName' in kwargs:
-            self.profileName = kwargs.get('profileName', 'gauss')
         if 'nProc' in kwargs:
             self.nParallel = int(kwargs.get('nProc', 12))
         if 'parallel' in kwargs:
             self.nParallel = int(kwargs.get('parallel', 12))
-        self.profile = profileFromName(self.profileName)
+        if self.profile is None:
+            self.profileName = kwargs.get('profileName', 'gauss')
+            self.profile = profileFromName(self.profileName)
 
     def _fit_one(self, Q, T, Y, E):
         try:

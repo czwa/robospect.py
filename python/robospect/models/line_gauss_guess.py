@@ -29,12 +29,10 @@ __all__ = ['line_gauss_guess']
 class line_gauss_guess(spectra.spectrum):
     modelName = 'pre'
     modelPhase = 'initial'
-    modelParamN = 3
 
     def __init__(self, *args, **kwargs):
         self.confName = 'pre'
         self.confPhase = 'initial'
-        self.modelParamN = 3
 
         self.range = 1.0
 
@@ -166,25 +164,28 @@ class line_gauss_guess(spectra.spectrum):
                 sigma = 1e-6
 
             F = F * np.exp(0.5 * ((m - self.x[center])/sigma)**2)
-            F = -1.0 * F
             if abs(F) > 1e3:
                 F = temp[center]
+#            F = -1.0 * F
 
-            # eta
             line.Q = np.array([m, sigma, F])
-            if (hw3qm2 + hw3qm1) == 0:
-                hw3qm2 = 1e-3;
-            peakiness = (hwhm2 + hwhm1) / (hw3qm2 + hw3qm1)
-            if peakiness > 1.68:
-                eta = -132.4711 + 79.3913 * peakiness
-            else:
-                eta = -18.7118 + 11.9942 * peakiness
-            if eta < 0.0:
-                eta = 0.0
-            np.append(line.Q, eta)
+
+            if self.profile.Nparm > 3:
+                # eta
+                if (hw3qm2 + hw3qm1) == 0:
+                    hw3qm2 = 1e-3;
+                peakiness = (hwhm2 + hwhm1) / (hw3qm2 + hw3qm1)
+                if peakiness > 1.68:
+                    eta = -132.4711 + 79.3913 * peakiness
+                else:
+                    eta = -18.7118 + 11.9942 * peakiness
+                if eta < 0.0:
+                    eta = 0.0
+                logger.debug(f"eta: {eta} {self.profile.Nparm} {self.profile}")
+                line.Q = np.append(line.Q, eta)
 
             line.pQ = line.Q
             for dx in range(start, end):
-                self.lines[dx] = self.lines[dx] - P.eval(self.x[dx], line.Q)
+                self.lines[dx] = self.lines[dx] - P.eval(self.x[dx], line.Q[0:3])
             logger.debug(f"End: {line}")
 

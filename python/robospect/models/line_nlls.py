@@ -33,16 +33,14 @@ class line_nlls(spectra.spectrum):
         self.modelName = 'nlls'
         self.modelPhase = 'line'
 
-        self.profileName = 'gauss'
-
         super().__init__(*args, **kwargs)
         config = kwargs.get(self.modelPhase, dict())
         self._configLine(**config)
 
     def _configLine(self, **kwargs):
-        if 'profileName' in kwargs:
+        if self.profile is None:
             self.profileName = kwargs.get('profileName', 'gauss')
-        self.profile = profileFromName(self.profileName)
+            self.profile = profileFromName(self.profileName)
 
     def fit_lines(self, **kwargs):
         """Use scipy.optimize to fit a non-linear least squares model.

@@ -105,7 +105,6 @@ class line_null(spectra.spectrum):
         self.modelName = 'null'
         self.modelPhase = 'line'
 
-        self.profileName = 'gauss'
         super().__init__(*args, **kwargs)
         config = kwargs.get(self.modelPhase, dict())
         self._configLine(**kwargs)

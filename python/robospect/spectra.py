@@ -21,6 +21,7 @@ import numpy as np
 import logging
 
 from robospect import lines
+from .models.profile_shapes import profileFromName
 
 __all__ = ['spectrum', 'M_spectrum']
 
@@ -45,6 +46,8 @@ class spectrum(object):
         self.alternate = np.zeros(len(self.x))
         self.error = np.zeros(len(self.x))
 
+        self.profile = None
+
         self.log = logging.getLogger("robospect.spectra")
         self.log.debug("Input Kwargs: %s" % (kwargs))
         # Things like general tolerances probably should be here too.
@@ -54,6 +57,7 @@ class spectrum(object):
         if self.fitting_parameters is not None:
             self.iteration = self.fitting_parameters.setdefault('iteration', 0)
             self.max_iteration = self.fitting_parameters.setdefault('max_iterations', 1)
+            self.profile = profileFromName(self.fitting_parameters.setdefault('profileName', 'gauss'))
         else:
             self.iteration = 0
             self.max_iteration = 1
@@ -199,12 +203,14 @@ class spectrum(object):
                 F = self.profile.f(self.x[start:end+1], line.Q)
             else:
                 F = self.profile.f(self.x[start:end+1], line.pQ)
+
             M = self.y[start:end+1] - (self.continuum[start:end+1] +
                                        self.lines[start:end+1])
             E = self.error[start:end+1]
             chiPre = np.sum(M / E)**2
             M = M - F
             chiPost = np.sum(M / E)**2
+
             if chiPost < chiPre:
                 self.log.debug(f"Good chi^2: x0: {line.x0} pre: {chiPre} post: {chiPost} chi_window: {chi_window} alternate_model: {use_alternate}")
                 self.lines[start:end+1] = self.lines[start:end+1] + F

@@ -24,10 +24,11 @@ import logging
 from . import spectra
 from . import models
 from . import io
+from robospect.models.profile_shapes import profileFromName
 
 __all__ = ['Config', 'VERSION']
 
-VERSION = 'dev-201906'
+VERSION = 'v0.75'
 
 class Config:
     """Configuration handler for ROBOSPECT.
@@ -108,6 +109,10 @@ class Config:
         self.output = fittingArgs.setdefault("output", "/tmp/rs")
         self.plot_all = fittingArgs.setdefault("plot_all", False)
 
+        self.log.debug(f"Setting profile: {fittingArgs}")
+        self.profileName = fittingArgs.setdefault("profileName", "gauss")
+        self.profile = profileFromName(self.profileName)
+        self.log.debug(f"Setting profile: {fittingArgs} {self.profileName} {self.profile}")
         self.iteration = 0
 
     def _parse(self, *args, **kwargs):

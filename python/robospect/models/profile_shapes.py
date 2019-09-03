@@ -136,9 +136,9 @@ class voigt(profile):
         (m, s, A, eta) = Q
         zR = (x - m) / s
         zI = eta / s
-        z = np.sqrt(0.5) * (zR + zI*1j)
+        z = np.sqrt(sp.pi) * (zR + zI*1j)
 
-        f = A * (sp.wofz(z).real)/(s * np.sqrt(2.0 * sp.pi))
+        f = A * (sp.special.wofz(z).real)  #  /(s * np.sqrt(2.0 * sp.pi))
         return f
 
     def df(self, x, Q):
@@ -170,15 +170,15 @@ class voigt(profile):
         zI = eta / s
         z = np.sqrt(0.5) * (zR + zI*1j)
 
-        dfdA = (sp.wofz(z).real)/(s * np.sqrt(2.0 * sp.pi))
-        dWdz = -2 * (z * sp.wofz(z) +
+        dfdA = (sp.special.wofz(z).real)/(s * np.sqrt(2.0 * sp.pi))
+        dWdz = -2 * (z * sp.special.wofz(z) +
                      1j / sp.pi * np.exp(-2 * z**2))
         dzdm = -np.sqrt(0.5) / s
         dzds = -z / s
         dzdeta = np.sqrt(0.5) * 1j / s
 
         dfdm = A/(s * np.sqrt(2.0) * sp.pi) * dWdz.real * dzdm
-        dfds = -A/(s * np.sqrt(2.0) * sp.pi) * (dWdz.real * z + sp.wofz(z).real) / s
+        dfds = -A/(s * np.sqrt(2.0) * sp.pi) * (dWdz.real * z + sp.special.wofz(z).real) / s
         dfdeta = A/(s * np.sqrt(2.0) * sp.pi) * dWdz.imag / s * -np.sqrt(0.5)
 
         return (dfdm, dfds, dfdA, dfdeta)
@@ -191,6 +191,18 @@ class voigt(profile):
 
         f = A * (sp.wofz(z).real)/(s * np.sqrt(2.0 * sp.pi))
         return (f, 0, 0, 0)
+
+    def fO(self, x, Q0, Q1, Q2, Q3):
+        Q = np.array([Q0, Q1, Q2, Q3])
+        return np.array(self.f(x, Q))
+
+    def dfO(self, x, Q0, Q1, Q2, Q3):
+        Q = np.array([Q0, Q1, Q2, Q3])
+        return np.array(self.df(x, Q))
+
+    def eval(self, x, Q):
+        return self.f(x, Q)
+
 
 class skewgauss(profile):
     def __init__(self, **kwargs):
