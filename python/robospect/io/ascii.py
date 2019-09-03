@@ -158,6 +158,8 @@ def smart_open(filename=None):
 
     try:
         yield f
+    except:
+        raise RuntimeError(f"Cannot open file {filename} for writing.")
     finally:
         if f is not sys.stdout:
             f.close()

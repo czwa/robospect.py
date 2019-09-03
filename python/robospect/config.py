@@ -232,10 +232,13 @@ class Config:
         if "path_base" in vars(BCparsed).keys():
             arguments['fitting']['path_base'] = BCparsed.path_base
             if BCparsed.path_base is not None:
-                logfile = logging.FileHandler(filename=BCparsed.path_base + ".log", mode="w")
-                # This is an ugly hack.
-                logfile.setFormatter(self.mainLog.root.handlers[0].formatter)
-                self.mainLog.addHandler(logfile)
+                try:
+                    logfile = logging.FileHandler(filename=BCparsed.path_base + ".log", mode="w")
+                    # This is an ugly hack.
+                    logfile.setFormatter(self.mainLog.root.handlers[0].formatter)
+                    self.mainLog.addHandler(logfile)
+                except:
+                    raise RuntimeError(f"Could not open file {BCparsed.path_base + 'log'} as logfile for writing.")
         if "continuum_box" in vars(BCparsed).keys():
             arguments['continuum']['box_size'] = BCparsed.continuum_box
         if "iterations" in vars(BCparsed).keys():
