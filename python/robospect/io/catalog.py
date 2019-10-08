@@ -86,24 +86,24 @@ def write_ascii_catalog(filename, lines):
             f.write("##AA [AA  AA  None]   ")
             f.write("[AA AA None]   ")
             f.write("[AA AA None]   ")
-            f.write("mAA mAA  None  None  None None")
+            f.write("mAA mAA  None  None  None None\n")
         elif len(lines[0].Q) == 4:
             f.write("##AA [AA  AA  None None]   ")
             f.write("[AA AA None]   ")
             f.write("[AA AA None]   ")
-            f.write("mAA mAA  None  None  None None")
+            f.write("mAA mAA  None  None  None None\n")
 
         f.write ("## Headers\n")
         if len(lines[0].Q) == 3:
             f.write("##wave_0 [gaussianMu  gaussianSigma  gaussianAmp]   ")
             f.write("[uncertaintyMu  uncertaintySigma  uncertaintyAmp]   ")
             f.write("[priorMu  priorSigma  priorAmp]   ")
-            f.write("EQW   uncertaintyEQW  chiSqr  flags  blendGroup comment")
+            f.write("EQW   uncertaintyEQW  chiSqr  flags  blendGroup comment\n")
         elif len(lines[0].Q) == 4:
             f.write("##wave_0 [gaussianMu  gaussianSigma  gaussianAmp  voigtGamma]   ")
             f.write("[uncertaintyMu  uncertaintySigma  uncertaintyAmp  uncertaintyGamma]   ")
             f.write("[priorMu  priorSigma  priorAmp]   ")
-            f.write("EQW   uncertaintyEQW  chiSqr  flags  blendGroup comment")
+            f.write("EQW   uncertaintyEQW  chiSqr  flags  blendGroup comment\n")
 
         # This is not a context manager, as that only exists in np 1.16?
         np.set_printoptions(formatter={'float': '{: 0.6f}'.format})
