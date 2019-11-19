@@ -42,11 +42,16 @@ def smart_open(filename=None):
             f.close()
 
 
-def _eqw(F):
-    return -1000.0 * F
+def _eqw(Q, dQ):
+    if len(Q) == 0:
+        return 0.0, 0.0
+    elif len(Q) < 3:
+        return -1000.0 * Q[0], np.abs(1000.0 * dQ[0])
+    else:
+        W = -1.0 * Q[2] * np.sqrt(2.0 * np.pi * Q[1]**2)
+        dW = W * np.sqrt(2.0 * np.pi) * np.sqrt( (dQ[2]/Q[2])**2 + (dQ[1]/Q[1])**2)
+        return W, dW
 
-def _deqw(dF):
-    return np.abs(1000.0 * dF)
 
 def write_ascii_catalog(filename, lines):
     """Write list of lines to ascii format.
@@ -116,7 +121,7 @@ def write_ascii_catalog(filename, lines):
 
             f.write ("%.4f %s   %s   %s       %f   %f   %f  %s  %d  %s\n" %
                      (L.x0, L.Q, L.dQ, L.pQ,
-                      _eqw(L.Q[2]), _deqw(L.dQ[2]),
+                      *_eqw(L.Q, L.dQ),
                       L.chi, L.flags, L.blend, L.comment))
 
 
