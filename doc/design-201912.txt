@@ -1,0 +1,43 @@
+I've been unhappy with the inheritance structure, and with the way
+methods are delegated between the various parts.  So, this is my
+rethinking of these methods, and how things are split.
+
+Config:
+
+In the perfect world, the Config object would only deal with
+constructing and validating dictionaries of parameters for a given
+spectrum from a set of command line options.
+
+IO:
+
+This means pulling IO into the spectrum class, and only passing a
+filename to the various methods.  /That/ also means making a catalog
+class that can be registered by each measurement task.  Then, writing
+output has a consistent object to operate on, and only needs to deal
+with the IO portion.
+
+   Catalog:
+
+      This is related to the Line object in a way I'm not totally
+      happy with.  The Line contains a center, a comment, a set of
+      flags and things (blend, chi^2, etc), a vector of parameters, a
+      vector of errors, and a vector of alternate values.  The catalog
+      needs to tie these abstract values to a defined set of header
+      keywords, units, and transformations related to the particular
+      Spectrum() profile methods.  I guess, thinking about this more,
+      the catalog is truly only tied to the profile.  A given profile
+      has a set of definitions for line and alternate.  Everything
+      else is likely defined directly by the catalog object itself.
+
+      The IO operations are basically serialization operations, so
+      reading an input list is converting a null catalog.  That
+      catalog is then promoted to a given model type, and then has new
+      lines appended to it as they are found.  It should be sortable,
+      and iterable, and appendable.
+
+Spectra:
+
+This needs to have a factory, so the set of {base_class, {mixins} }
+can return a built class that has everything available.  I think each
+of the mixin parts should inherit a defined list of kwargs, so
+dereferencing the set of dicts does "the right thing."  

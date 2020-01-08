@@ -94,7 +94,7 @@ class line_mp_nlls(spectra.spectrum):
         for line in self.L:
             line.flags.reset(flagList=["FIT_BOUND", "FIT_FAIL"])
 
-            if line.x0 < self.min() or line.x0 > self.max():
+            if line.x0 < self.min or line.x0 > self.max:
                 line.flags.set("FIT_BOUND")
                 continue
 

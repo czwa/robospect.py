@@ -34,7 +34,7 @@ class line_gauss_guess(spectra.spectrum):
     def __init__(self, *args, **kwargs):
         self.confName = 'pre'
         self.confPhase = 'initial'
-        self.modelParamN = 3
+        self.Q = 'mu_alt,sigma_alt,flux_alt'
 
         self.range = 1.0
 
@@ -76,16 +76,16 @@ class line_gauss_guess(spectra.spectrum):
         P = models.gaussian()
         temp = (self.y - self.continuum)
 
-        for line in self.L:
+        for line in self.Catalog:
             ## 2019-05-23 CZW:
             ## The issues here:
             ##   * searchsorted isn't quite as good as I want, but I think this resolves the issue now.
             ##   * the inputs to _centroid wasn't including the right-most pixel.  fixed?
             ##   * the off-by-one issue hits the F-calculation as well.
-            if line.x0 < self.min() or line.x0 > self.max():
+            if line[x0] < self.min or line[x0] > self.max:
                 continue
 
-            center= np.searchsorted(self.x, line.x0, side='left')
+            center= np.searchsorted(self.x, line[x0], side='left')
             if center < 0 or center >= len(self.x):
                 continue
 

@@ -66,6 +66,9 @@ class profile():
     def __call__(self, x, Q):
         return self.eval(x, Q)
 
+    def _register(self, catalog):
+        pass
+    
     def f(self, x, *args, **kwargs):
         pass
 
@@ -81,6 +84,39 @@ class profile():
 class gaussian(profile):
     def __init__(self, **kwargs):
         self.Nparm = 3
+        self.Q = 'mu,sigma,flux'
+        self.dQ = 'mu_err,sigma_err,flux_err'
+
+    def _register(self, catalog):
+        catalog._id(name='mu', unit='Angstrom', index=20,
+                    header='Model mean of line.',
+                    default='x0')
+        catalog._id(name='sigma', unit='Angstrom', index=21,
+                    header='Model sigma of line.',
+                    default=1.0)
+        catalog._id(name='flux', unit='Angstrom', index=22,
+                    header='Model flux of line.',
+                    default=0.0)
+
+        catalog._id(name='mu_err', unit='Angstrom', index=30,
+                    header='Uncertainty in model mean of line.',
+                    default='x0')
+        catalog._id(name='sigma_err', unit='Angstrom', index=31,
+                    header='Uncertainty in model sigma of line.',
+                    default=1.0)
+        catalog._id(name='flux_err', unit='Angstrom', index=32,
+                    header='Uncertainty in model flux of line.',
+                    default=0.0)
+
+        catalog._id(name='altMu', unit='Angstrom', index=40,
+                    header='Alternate mean of line from centroid.',
+                    default='x0')
+        catalog._id(name='altSigma', unit='Angstrom', index=41,
+                    header='Alternate sigma of line from FWHM.',
+                    default=1.0)
+        catalog._id(name='altFlux', unit='Angstrom', index=42,
+                    header='Alternate flux of line from FWHM.',
+                    default=0.0)
 
     def f(self, x, Q):
         if len(Q) == 0:
@@ -131,6 +167,43 @@ class gaussian(profile):
 class voigt(profile):
     def __init__(self, **kwargs):
         self.Nparm = 4
+
+    def _register(self, catalog):
+        catalog._id(name='mu', unit='Angstrom', index=20,
+                    header='Model mean of line.',
+                    default='x0')
+        catalog._id(name='sigma', unit='Angstrom', index=21,
+                    header='Model sigma of line.',
+                    default=1.0)
+        catalog._id(name='flux', unit='Angstrom', index=22,
+                    header='Total flux of line.',
+                    default=0.0)
+        catalog._id(name='eta', unit='Angstrom', index=23,
+                    header='Additional non-Gaussian convolution term.',
+                    default=0.0)
+
+        catalog._id(name='mu_err', unit='Angstrom', index=30,
+                    header='Uncertainty in model mean of line.',
+                    default='x0')
+        catalog._id(name='sigma_err', unit='Angstrom', index=31,
+                    header='Uncertainty in model sigma of line.',
+                    default=0.0)
+        catalog._id(name='flux_err', unit='Angstrom', index=32,
+                    header='Uncertainty in model flux of line.',
+                    default=0.0)
+        catalog._id(name='eta_err', unit='Angstrom', index=33,
+                    header='Uncertainty in eta parameter.',
+                    default=0.0)
+
+        catalog._id(name='altMu', unit='Angstrom', index=40,
+                    header='Alternate mean of line from centroid.',
+                    default='x0')
+        catalog._id(name='altSigma', unit='Angstrom', index=41,
+                    header='Alternate sigma of line from FWHM.',
+                    default=1.0)
+        catalog._id(name='altFlux', unit='Angstrom', index=42,
+                    header='Alternate flux of line from FWHM.',
+                    default=0.0)
 
     def f(self, x, Q):
         (m, s, A, eta) = Q
@@ -196,6 +269,43 @@ class skewgauss(profile):
     def __init__(self, **kwargs):
         self.Nparm = 4
 
+    def _register(self, catalog):
+        catalog._id(name='mu', unit='Angstrom', index=20,
+                    header='Model mean of line.',
+                    default='x0')
+        catalog._id(name='sigma', unit='Angstrom', index=21,
+                    header='Model sigma of line.',
+                    default=1.0)
+        catalog._id(name='flux', unit='Angstrom', index=22,
+                    header='Model flux of line.',
+                    default=0.0)
+        catalog._id(name='eta', unit='Angstrom', index=23,
+                    header='Model skewness.',
+                    default=0.0)
+
+        catalog._id(name='mu_err', unit='Angstrom', index=30,
+                    header='Uncertainty in model mean of line.',
+                    default='x0')
+        catalog._id(name='sigma_err', unit='Angstrom', index=31,
+                    header='Uncertainty in model sigma of line.',
+                    default=1.0)
+        catalog._id(name='flux_err', unit='Angstrom', index=32,
+                    header='Uncertainty in model flux of line.',
+                    default=0.0)
+        catalog._id(name='eta_err', unit='Angstrom', index=33,
+                    header='Uncertainty in eta parameter.',
+                    default=0.0)
+
+        catalog._id(name='altMu', unit='Angstrom', index=40,
+                    header='Alternate mean of line from centroid.',
+                    default='x0')
+        catalog._id(name='altSigma', unit='Angstrom', index=41,
+                    header='Alternate sigma of line from FWHM.',
+                    default=1.0)
+        catalog._id(name='altFlux', unit='Angstrom', index=42,
+                    header='Alternate flux of line from FWHM.',
+                    default=0.0)
+
     def gamma(eta):
         delta = eta / np.sqrt(1 + eta*eta)
         gamma = (2.0 - sp.pi/2.0) * (delta * np.sqrt(2/sp.pi))**3 / (1 - (2 / sp.pi) * delta*delta)**1.5
@@ -230,6 +340,37 @@ class skewgauss(profile):
 class lorentzian(profile):
     def __init__(self, **kwargs):
         self.Nparm = 3
+
+    def _register(self, catalog):
+        catalog._id(name='mu', unit='Angstrom', index=20,
+                    header='Model mean of line.',
+                    default='x0')
+        catalog._id(name='sigma', unit='Angstrom', index=21,
+                    header='Model sigma of line.',
+                    default=1.0)
+        catalog._id(name='flux', unit='Angstrom', index=22,
+                    header='Model flux of line.',
+                    default=0.0)
+
+        catalog._id(name='mu_err', unit='Angstrom', index=30,
+                    header='Uncertainty in model mean of line.',
+                    default='x0')
+        catalog._id(name='sigma_err', unit='Angstrom', index=31,
+                    header='Uncertainty in model sigma of line.',
+                    default=1.0)
+        catalog._id(name='flux_err', unit='Angstrom', index=32,
+                    header='Uncertainty in model flux of line.',
+                    default=0.0)
+
+        catalog._id(name='altMu', unit='Angstrom', index=40,
+                    header='Alternate mean of line from centroid.',
+                    default='x0')
+        catalog._id(name='altSigma', unit='Angstrom', index=41,
+                    header='Alternate sigma of line from FWHM.',
+                    default=1.0)
+        catalog._id(name='altFlux', unit='Angstrom', index=42,
+                    header='Alternate flux of line from FWHM.',
+                    default=0.0)
 
     def fdf(self, x, Q):
         (m, s, A) = Q

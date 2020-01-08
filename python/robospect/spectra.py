@@ -22,16 +22,28 @@ import logging
 
 from robospect import lines
 
+
 __all__ = ['spectrum', 'M_spectrum']
+
 
 class M_spectrum(type):
     pass
 
+
 class spectrum(object):
-    r"""Class to hold data objects and fitting methods.
+    """Spectrum class holding the data objects and the fitting methods.
 
+    Parameters
+    ----------
+    *args : 
+         Unused at this point.  Passed to __new__?
+    **kwargs : `dict` 
+         Settings dictionary-of-dictionaries used to configure fitting
+         parameters.  Keys:
+
+         ``"fitting"``
+            List of fitting parameter overrides. (`dict`).
     """
-
     def __init__(self, *args, **kwargs):
         self.x = []
         self.y = []
@@ -58,14 +70,17 @@ class spectrum(object):
             self.iteration = 0
             self.max_iteration = 1
 
+    @property
     def max(self):
         if self.x is not None:
             return self.x[-1]
 
+    @property
     def min(self):
         if self.x is not None:
             return self.x[0]
 
+    @property
     def length(self):
         if self.x is not None:
             return len(self.x)
@@ -206,10 +221,38 @@ class spectrum(object):
             M = M - F
             chiPost = np.sum(M / E)**2
             if chiPost < chiPre:
-                self.log.debug(f"Good chi^2: x0: {line.x0} pre: {chiPre} post: {chiPost} chi_window: {chi_window} alternate_model: {use_alternate}")
+                self.log.debug(f"Good chi^2: x0: {line.x0} "
+                               f"pre: {chiPre} post: {chiPost} chi_window: {chi_window} "
+                               f"alternate_model: {use_alternate}")
                 self.lines[start:end+1] = self.lines[start:end+1] + F
                 line.R = chiPost / (end + 1 - start)
             else:
-                self.log.debug(f"Bad chi^2: x0: {line.x0} pre: {chiPre} post: {chiPost} chi_window: {chi_window} alternate_model: {use_alternate}")
+                self.log.debug(f"Bad chi^2: x0: {line.x0} "
+                               f"pre: {chiPre} post: {chiPost} chi_window: {chi_window} "
+                               f"alternate_model: {use_alternate}")
                 line.flags.set(flagString=flagString)
                 line.R = chiPre / (end + 1 - start)
+
+def SpectrumFactory(*inheritance_list, **kwargs):
+    """Construct the correct spectrum class for a given list of
+    subclasses.
+
+    Parameters
+    ----------
+    inheritance_list : `list` [Spectrum]
+        List of sub-classes to use for the output class.
+
+    Returns
+    -------
+    Spectrum : 
+        Compiled spectrum class.
+    """
+    sorted_inheritance = inheritance_list.sort(key=lambda I: I.get('order', 0))
+
+    class Spectrum(*sorted_inheritance):
+        pass
+
+    return Spectrum(**kwargs)
+
+
+        

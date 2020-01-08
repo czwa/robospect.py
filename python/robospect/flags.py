@@ -49,6 +49,9 @@ class Flags():
     def __repr__(self):
         return hex(self.value)
 
+    def __format__(self, spec):
+        return self.__str__().format(spec)
+    
     def string_to_doc(self, flagString=None):
         """Convert a flag name to the documentation string.
 
